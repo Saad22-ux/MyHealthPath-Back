@@ -7,7 +7,7 @@ const User = require('../models/User'); // adjust path if needed
 // ✅ LOGIN ROUTE
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
+  console.log(email,password);
   try {
     // 1. Find user by email
     const user = await User.findOne({ where: { email } });

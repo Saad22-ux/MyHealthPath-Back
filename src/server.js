@@ -3,15 +3,23 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const authRoutes = require('./routes/authRoutes'); 
 const sequelize = require('./config/database');
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
 
+//Enable cors for all routes 
+app.use(cors({
+  origin: 'http://localhost:4200', // Angular app URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true, // Allow cookies to be sent from Angular to Express
+}));
+
 // Session store config
 const sessionStore = new MySQLStore({
   host: 'localhost',
-  user: 'saad',
-  password: 'kirmizi',
+  user: 'root',
+  password: '',
   database: 'myhealthpath'
 });
 
