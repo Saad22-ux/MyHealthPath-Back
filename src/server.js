@@ -7,7 +7,7 @@ const sequelize = require('./config/database');
 const app = express();
 app.use(express.json());
 
-// Session store config
+
 const sessionStore = new MySQLStore({
   host: 'localhost',
   user: 'saad',
@@ -30,7 +30,7 @@ app.use(session({
 
 app.use(authRoutes);
 
-// ✅ Start server only after DB is connected
+
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Database connected.');
