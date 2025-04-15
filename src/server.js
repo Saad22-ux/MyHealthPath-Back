@@ -1,7 +1,8 @@
 const express = require('express');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./Controllers/authRoutes'); 
+const registerRoutes = require('./Controllers/registerRoutes');
 const sequelize = require('./config/database');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use(session({
 }));
 
 app.use(authRoutes);
+app.use(registerRoutes);
 
 
 sequelize.authenticate()
