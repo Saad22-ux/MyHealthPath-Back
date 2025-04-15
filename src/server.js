@@ -11,8 +11,8 @@ app.use(express.json());
 
 const sessionStore = new MySQLStore({
   host: 'localhost',
-  user: 'saad',
-  password: 'kirmizi',
+  user: 'myHealthPathUser',
+  password: 'SaadAli1234',
   database: 'myhealthpath'
 });
 

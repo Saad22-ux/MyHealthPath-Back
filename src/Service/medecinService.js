@@ -29,7 +29,7 @@ async function createMedecin(medecinDTO){
 
     } catch (err) {
         console.error('Error in register middleware:', err);
-        return { success: false, message: 'Internal server error.' };
+        return { success: false, message: err};
     }
 }
 
