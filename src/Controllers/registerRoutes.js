@@ -6,7 +6,7 @@ const registerMedecinController = require('../Service/medecinService');
 router.post('/register',async (req,res)=>{
     const medecinDTO = req.body;
     const validationErrors = validateRegister(medecinDTO);
-    if(validationErrors.length >0){
+    if(Object.keys(validationErrors).length >0){
         return res.status(400).json({ errors: validationErrors });
     }
 

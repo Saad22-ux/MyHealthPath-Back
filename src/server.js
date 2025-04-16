@@ -4,6 +4,8 @@ const MySQLStore = require('express-mysql-session')(session);
 const authRoutes = require('./Controllers/authRoutes'); 
 const registerRoutes = require('./Controllers/registerRoutes');
 const sequelize = require('./config/database');
+const cors = require('cors');
+
 
 const app = express();
 app.use(express.json());
@@ -28,6 +30,12 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
+app.use(cors({
+  origin: 'http://localhost:4200', // Angular dev URL
+  credentials: true
+}));
+
 
 app.use(authRoutes);
 app.use(registerRoutes);

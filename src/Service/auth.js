@@ -8,10 +8,15 @@ const User = require('../models/User');
     try {
       
       const user = await User.findOne({ where: { email } });
-      const isMatch = await bcrypt.compare(password, user.password);
   
-      if (!user || !isMatch) {
+      if (!user) {
         return res.status(401).json({ message: 'Invalid email or password ' });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid email or password' });
       }
   
       req.session.user = {

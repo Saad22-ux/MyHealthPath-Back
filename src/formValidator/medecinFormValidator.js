@@ -3,15 +3,15 @@ const Medecin = require('../models/Medecin');
 
 module.exports = function validateAll(medecinDTO){
     const {fullName,email,password,specialite} = medecinDTO;
-    const errors = [];
+    const errors = {};
 
     const cleanName = validator.blacklist(fullName,' -')
     if(!validator.isAlpha(cleanName)){
-        errors.push('Name field takes only alphabet lettres!');
+        errors.fullName = 'Name field takes only alphabet letters!';
     }
 
     if(!validator.isEmail(email)){
-        errors.push('Invalid email format!');
+        errors.email = 'Invalid email format!';
     }
 
     if(!validator.isStrongPassword(password,{
@@ -21,11 +21,11 @@ module.exports = function validateAll(medecinDTO){
         minNumbers: 1,
         minSymbols: 0
     })) {
-        errors.push('You need a stronger password!');
+        errors.password = 'You need a stronger password!';
     }
     
     if(validator.isEmpty(specialite)){
-        errors.push('Speciality required!');
+        errors.specialite = 'Speciality required!';
     }
 
     return errors;
