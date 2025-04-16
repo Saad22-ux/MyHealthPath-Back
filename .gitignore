@@ -1,4 +1,4 @@
 src/node_modules
 src/.env
 node_modules/
-git add ../package-lock.json ../package.json
+
