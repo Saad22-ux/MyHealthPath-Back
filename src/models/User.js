@@ -28,6 +28,11 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('admin', 'medecin', 'patient'),
     allowNull: false,
     defaultValue: 'medecin'   
+  },
+  isApproved: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
   }
 }, {
     timestamps: false, 
@@ -38,6 +43,8 @@ const User = sequelize.define('User', {
 User.beforeCreate(async (user) => {
   user.password = await bcrypt.hash(user.password, 10);
 });
+
+
 
 
 module.exports = User;
