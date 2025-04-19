@@ -1,9 +1,10 @@
 const express = require('express');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-const authRoutes = require('./routes/authRoutes'); 
+const authRoutes = require('./Controllers/authRoutes'); 
+const registerRoutes = require('./Controllers/registerRoutes');
+const adminRoutes = require('./Controllers/adminRoutes');
 const sequelize = require('./config/database');
-const cors = require('cors');
 
 const app = express();
 app.use(express.json());
@@ -15,11 +16,11 @@ app.use(cors({
   credentials: true, // Allow cookies to be sent from Angular to Express
 }));
 
-// Session store config
+
 const sessionStore = new MySQLStore({
   host: 'localhost',
-  user: 'root',
-  password: '',
+  user: 'saad',
+  password: 'kirmizi',
   database: 'myhealthpath'
 });
 
@@ -36,9 +37,17 @@ app.use(session({
   }
 }));
 
-app.use(authRoutes);
+app.use(cors({
+  origin: 'http://localhost:4200', 
+  credentials: true
+}));
 
-// ✅ Start server only after DB is connected
+
+app.use(authRoutes);
+app.use(registerRoutes);
+app.use(adminRoutes);
+
+
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Database connected.');
