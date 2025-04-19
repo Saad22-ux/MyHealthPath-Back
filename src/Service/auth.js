@@ -30,9 +30,10 @@ const User = require('../models/User');
         req.session.user = {
           id: user.id,
           email: user.email,
+          role: user.role
         };
         
-        res.status(200).json({ message: 'Logged in successfully'});
+        res.status(200).json({ message: 'Logged in successfully', role: user.role});
       } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });
