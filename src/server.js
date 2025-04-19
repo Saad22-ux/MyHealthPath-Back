@@ -3,6 +3,7 @@ const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const authRoutes = require('./Controllers/authRoutes'); 
 const registerRoutes = require('./Controllers/registerRoutes');
+const adminRoutes = require('./Controllers/adminRoutes');
 const sequelize = require('./config/database');
 const cors = require('cors');
 
@@ -32,13 +33,14 @@ app.use(session({
 }));
 
 app.use(cors({
-  origin: 'http://localhost:4200', // Angular dev URL
+  origin: 'http://localhost:4200', 
   credentials: true
 }));
 
 
 app.use(authRoutes);
 app.use(registerRoutes);
+app.use(adminRoutes);
 
 
 sequelize.authenticate()
