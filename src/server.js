@@ -5,6 +5,8 @@ const authRoutes = require('./Controllers/authRoutes');
 const registerRoutes = require('./Controllers/registerRoutes');
 const adminRoutes = require('./Controllers/adminRoutes');
 const sequelize = require('./config/database');
+const cors = require('cors');
+
 
 const app = express();
 app.use(express.json());
