@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Medecin = require('../models/Medecin');
 const Patient = require('../models/Patient');
 const { sendPatientCredentials } = require('../utils/sendMail');
 const bcrypt = require('bcrypt');
@@ -43,4 +44,23 @@ async function createPatient(patientDTO,medecinId) {
   }
 }
 
-module.exports = { createPatient };
+async function getPatients(medecinId){
+  try {
+
+    const Patients = await Patient.findAll({
+      where: {
+        MedecinId: medecinId
+      },
+        include: {
+            model: Medecin,
+        }
+    });
+
+    return {success: true, data: Patients};
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+module.exports = { createPatient,getPatients };
