@@ -17,7 +17,7 @@ const Patient = sequelize.define('Patient', {
   tableName: 'Patient',
 });
 
-
+Medecin.hasMany(Patient);
 Patient.belongsTo(User, {
   foreignKey: {
     name: 'UserId',

@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const Medecin = require('../models/Medecin');
 const Patient = require('../models/Patient');
+const Medicament = require('../models/Medicament');
+const Indicateur = require('../models/Indicateur');
 const { sendPatientCredentials } = require('../utils/sendMail');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -105,5 +107,41 @@ async function activerPatient(patientId) {
   }
 }
 
+async function getPatientDetails(patientId) {
+  try {
+    const patient = await Patient.findOne({
+      where: { id: patientId },
+      include: [
+        {
+          model: User,
+          attributes: ['fullName', 'email', 'isApproved']
+        },
+        {
+          model: Medecin,
+          attributes: ['id', 'specialite']
+        },
+        {
+          model: Medicament, 
+        },
+        {
+          model: Indicateur, 
+        }
+      ]
+    });
 
-module.exports = { createPatient,getPatients,suspendrePatient,activerPatient };
+    if (!patient) return { success: false, message: "Patient not found" };
+
+    return { success: true, data: patient };
+  } catch (err) {
+    console.error("Error fetching patient details:", err);
+    return { success: false, message: "Server error" };
+  }
+}
+
+
+
+module.exports = { createPatient,
+                  getPatients,
+                  suspendrePatient,
+                  activerPatient,
+                  getPatientDetails };
