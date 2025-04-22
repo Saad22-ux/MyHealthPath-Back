@@ -63,4 +63,26 @@ async function getPatients(medecinId){
   }
 }
 
-module.exports = { createPatient,getPatients };
+async function suspendrePatient(patientId) {
+  try {
+
+    const patient = await Patient.findByPk(patientId, {
+      include: {
+        model: User
+      }
+    });
+
+    if (!patient || !patient.User) {
+      return { success: false, message: 'Patient not found' };
+    }
+
+    await patient.User.update({ isApproved: false });
+    return { success: true, message: 'Patient suspended successfully' };
+  } catch (error) {
+    console.error('Error suspending patient:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+
+module.exports = { createPatient,getPatients,suspendrePatient };
