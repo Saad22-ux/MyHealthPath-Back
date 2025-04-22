@@ -84,5 +84,26 @@ async function suspendrePatient(patientId) {
   }
 }
 
+async function activerPatient(patientId) {
+  try {
 
-module.exports = { createPatient,getPatients,suspendrePatient };
+    const patient = await Patient.findByPk(patientId, {
+      include: {
+        model: User
+      }
+    });
+
+    if (!patient || !patient.User) {
+      return { success: false, message: 'Patient not found' };
+    }
+
+    await patient.User.update({ isApproved: true });
+    return { success: true, message: 'Patient activated successfully' };
+  } catch (error) {
+    console.error('Error activating patient:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+
+module.exports = { createPatient,getPatients,suspendrePatient,activerPatient };

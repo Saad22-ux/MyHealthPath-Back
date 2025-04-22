@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPatient,getPatients,suspendrePatient } = require('../Service/patientService');
+const { createPatient,getPatients,suspendrePatient,activerPatient } = require('../Service/patientService');
 
 router.post('/create-patient', async (req, res) => {
   const medecinId = req.session.user.id;
@@ -30,6 +30,17 @@ router.get('/get-patients',async (req,res)=>{
 router.post('/get-patients/:id/suspendre',async (req,res)=>{
   const patientId = req.params.id;
   const result = await suspendrePatient(patientId);
+
+  if (result.success) {
+    res.status(200).json({ message: result.message });
+  } else {
+    res.status(400).json({ message: result.message });
+  }
+});
+
+router.post('/get-patients/:id/activate',async (req,res)=>{
+  const patientId = req.params.id;
+  const result = await activerPatient(patientId);
 
   if (result.success) {
     res.status(200).json({ message: result.message });
