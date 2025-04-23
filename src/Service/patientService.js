@@ -1,5 +1,8 @@
 const User = require('../models/User');
+const Medecin = require('../models/Medecin');
 const Patient = require('../models/Patient');
+const Medicament = require('../models/Medicament');
+const Indicateur = require('../models/Indicateur');
 const { sendPatientCredentials } = require('../utils/sendMail');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -43,4 +46,102 @@ async function createPatient(patientDTO,medecinId) {
   }
 }
 
-module.exports = { createPatient };
+async function getPatients(medecinId){
+  try {
+
+    const Patients = await Patient.findAll({
+      where: {
+        MedecinId: medecinId
+      },
+        include: {
+            model: Medecin,
+        }
+    });
+
+    return {success: true, data: Patients};
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+async function suspendrePatient(patientId) {
+  try {
+
+    const patient = await Patient.findByPk(patientId, {
+      include: {
+        model: User
+      }
+    });
+
+    if (!patient || !patient.User) {
+      return { success: false, message: 'Patient not found' };
+    }
+
+    await patient.User.update({ isApproved: false });
+    return { success: true, message: 'Patient suspended successfully' };
+  } catch (error) {
+    console.error('Error suspending patient:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+async function activerPatient(patientId) {
+  try {
+
+    const patient = await Patient.findByPk(patientId, {
+      include: {
+        model: User
+      }
+    });
+
+    if (!patient || !patient.User) {
+      return { success: false, message: 'Patient not found' };
+    }
+
+    await patient.User.update({ isApproved: true });
+    return { success: true, message: 'Patient activated successfully' };
+  } catch (error) {
+    console.error('Error activating patient:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+async function getPatientDetails(patientId) {
+  try {
+    const patient = await Patient.findOne({
+      where: { id: patientId },
+      include: [
+        {
+          model: User,
+          attributes: ['fullName', 'email', 'isApproved']
+        },
+        {
+          model: Medecin,
+          attributes: ['id', 'specialite']
+        },
+        {
+          model: Medicament, 
+        },
+        {
+          model: Indicateur, 
+        }
+      ]
+    });
+
+    if (!patient) return { success: false, message: "Patient not found" };
+
+    return { success: true, data: patient };
+  } catch (err) {
+    console.error("Error fetching patient details:", err);
+    return { success: false, message: "Server error" };
+  }
+}
+
+
+
+module.exports = { createPatient,
+                  getPatients,
+                  suspendrePatient,
+                  activerPatient,
+                  getPatientDetails };

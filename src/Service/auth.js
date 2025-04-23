@@ -22,7 +22,7 @@ const User = require('../models/User');
         }
 
         if (!user.isApproved) {
-          return res.status(403).json({ message: 'Account not approved yet! Wait for admin approval.' });
+          return res.status(403).json({ message: 'Account not approved yet!' });
         }
 
         
