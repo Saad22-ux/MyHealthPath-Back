@@ -53,9 +53,13 @@ async function getPatients(medecinId){
       where: {
         MedecinId: medecinId
       },
-        include: {
+        include:[ {
             model: Medecin,
-        }
+        },
+        {
+          model: User,
+        },
+      ]
     });
 
     return {success: true, data: Patients};
