@@ -6,6 +6,7 @@ const Indicateur = require('../models/Indicateur');
 const { sendPatientCredentials } = require('../utils/sendMail');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const { userInfo } = require('os');
 
 async function createPatient(patientDTO,medecinId) {
   try {
@@ -117,12 +118,10 @@ async function getPatientDetails(patientId) {
       where: { id: patientId },
       include: [
         {
-          model: User,
-          attributes: ['fullName', 'email', 'isApproved']
+          model: User
         },
         {
-          model: Medecin,
-          attributes: ['id', 'specialite']
+          model: Medecin
         },
         {
           model: Medicament, 

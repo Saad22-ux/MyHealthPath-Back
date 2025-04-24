@@ -24,4 +24,21 @@ async function ajouterMedicament(medicamentDTO, patientId) {
   }
 }
 
-module.exports = { ajouterMedicament };
+async function supprimerMedicament(medicamentId){
+  try{
+    const medicament = await Medicament.findByPk(medicamentId);
+
+    if(!medicament){
+      return { success: false, message: 'Medication not found'};
+    }
+
+    await medicament.destroy();
+
+    return { success: true, message: 'Medication removed successfully'};
+  } catch(error){
+    console.error('Error removing medication');
+    return { success: false, message: 'Server error'};
+  }
+}
+
+module.exports = { ajouterMedicament, supprimerMedicament };
