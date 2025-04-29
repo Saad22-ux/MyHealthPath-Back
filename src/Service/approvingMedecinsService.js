@@ -1,6 +1,5 @@
 const express = require('express');
-const User = require('../models/User');
-const Medecin = require('../models/Medecin');
+const { User, Medecin } = require('../models');
 
 async function getPendingMedecins(){
   try {

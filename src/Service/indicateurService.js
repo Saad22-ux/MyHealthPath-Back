@@ -1,5 +1,4 @@
-const Indicateur = require('../models/Indicateur');
-const Patient = require('../models/Patient');
+const { Indicateur, Patient } = require('../models');
 
 async function ajouterIndicateur(indicateurDTO, patientId){
     try{

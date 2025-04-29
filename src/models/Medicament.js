@@ -1,30 +1,37 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Patient = require('./Patient');
-
-const Medicament = sequelize.define('Medicament',{
+module.exports = (sequelize, DataTypes) => {
+  const Medicament = sequelize.define('Medicament', {
+    id: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    } ,
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     dose: {
-        type: DataTypes.STRING, allowNull: false
+      type: DataTypes.BIGINT,
+      allowNull: false,
     },
     frequency: {
-      type: DataTypes.STRING,
-      allowNull: false
-    } 
-},{
-    timestamps: false, 
-    tableName: 'Medicament', 
-});
-
-Patient.hasMany(Medicament);
-Medicament.belongsTo(Patient, {
-    foreignKey: {
-      name: 'PatientId',
-      allowNull: false
+      type: DataTypes.BIGINT,
+      allowNull: false,
     },
-    onDelete: 'CASCADE'
+    duree: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+  }, {
+    tableName: 'Medicament',
+    timestamps: false,
   });
-module.exports = Medicament;
+
+  Medicament.associate = (db) => {
+    Medicament.belongsTo(db.Patient, {
+      foreignKey: { name: 'PatientId', type: DataTypes.BIGINT, allowNull: false },
+      onDelete: 'CASCADE',
+    });
+  };
+
+  return Medicament;
+};

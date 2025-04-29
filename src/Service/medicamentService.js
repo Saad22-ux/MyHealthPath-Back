@@ -1,5 +1,4 @@
-const Medicament = require('../models/Medicament');
-const Patient = require('../models/Patient');
+const { Medicament, Patient } = require('../models');
 
 async function ajouterMedicament(medicamentDTO, patientId) {
   try {

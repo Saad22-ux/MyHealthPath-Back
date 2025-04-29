@@ -1,16 +1,25 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
-
-const Medecin = sequelize.define('Medecin',{
+module.exports = (sequelize, DataTypes) => {
+  const Medecin = sequelize.define('Medecin', {
+    id: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
     specialite: {
-        type: DataTypes.STRING,
-        allowNull: false
-    }  
-},{
-    timestamps: false, 
-    tableName: 'Medecin', 
-});
+      type: DataTypes.ENUM('Diabète', 'Hypertension', 'Cholesterol'),
+      allowNull: false,
+    },
+  }, {
+    tableName: 'Medecin',
+    timestamps: false,
+  });
 
-Medecin.belongsTo(User);
-module.exports = Medecin;
+  Medecin.associate = (db) => {
+    Medecin.belongsTo(db.User, {
+      foreignKey: { name: 'UserId', type: DataTypes.BIGINT, allowNull: false },
+      onDelete: 'CASCADE',
+    });
+  };
+
+  return Medecin;
+};

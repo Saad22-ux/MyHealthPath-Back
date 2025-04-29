@@ -1,0 +1,33 @@
+module.exports = (sequelize, DataTypes) => {
+  const Prescription = sequelize.define('Prescription', {
+    id: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+  }, {
+    tableName: 'Prescription',
+    timestamps: false,
+  });
+
+  Prescription.associate = (db) => {
+    Prescription.belongsTo(db.Medecin, {
+      foreignKey: { name: 'MedecinId', type: DataTypes.BIGINT, allowNull: false },
+      onDelete: 'CASCADE',
+    });
+    Prescription.belongsTo(db.Patient, {
+      foreignKey: { name: 'PatientId', type: DataTypes.BIGINT, allowNull: false },
+      onDelete: 'CASCADE',
+    });
+  };
+
+  return Prescription;
+};

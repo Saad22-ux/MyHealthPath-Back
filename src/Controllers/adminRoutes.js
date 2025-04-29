@@ -1,9 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const { getPendingMedecins, approveMedecin } = require('../Service/approvingMedecinsService');
-const User = require('../models/User');
-const Medecin = require('../models/Medecin');
+const { User, Medecin } = require('../models');
+const { createAdminUser }  = require('../Service/adminService');
 
+router.post('/create-admin', async (req, res) => {
+    const adminDTO = req.body;
+  
+    try {
+      const admin = await createAdminUser(adminDTO);
+      res.status(201).json(admin);
+    } catch (error) {
+      console.error('Failed to create admin:', error);
+      res.status(500).json({ message: 'Failed to create admin' });
+    }
+  });
 
 router.get('/pending-medecins', async (req, res) => {
     const result = await getPendingMedecins();

@@ -1,5 +1,4 @@
-const Medecin  = require('../models/Medecin');
-const User = require('../models/User');
+const { Medecin, User} = require('../models');
 const bcrypt = require('bcrypt');
 
 async function createMedecin(medecinDTO){

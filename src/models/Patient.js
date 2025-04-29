@@ -1,39 +1,52 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
-const Medecin = require('./Medecin');
+module.exports = (sequelize, DataTypes) => {
+  const Patient = sequelize.define('Patient', {
+    id: {
+      type: DataTypes.BIGINT,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    genre: {
+      type: DataTypes.ENUM('homme', 'femme'),
+      allowNull: false,
+    },
+    date_naissance: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    isSubscribed: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    state: {
+      type: DataTypes.ENUM('Danger', 'Normal', 'Good'),
+      allowNull: false,
+      defaultValue: 'Normal',
+    },
+  }, {
+    tableName: 'Patient',
+    timestamps: false,
+  });
 
-const Patient = sequelize.define('Patient', {
-  date_naissance: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
-  },
-  genre: {
-    type: DataTypes.ENUM('homme', 'femme'),
-    allowNull: false,
-  }
-}, {
-  timestamps: false,
-  tableName: 'Patient',
-});
+  Patient.associate = (db) => {
+    Patient.belongsTo(db.User, {
+      foreignKey: { name: 'UserId', type: DataTypes.BIGINT, allowNull: false },
+      onDelete: 'CASCADE',
+    });
+    Patient.belongsTo(db.Medecin, {
+      foreignKey: { name: 'MedecinId', type: DataTypes.BIGINT, allowNull: true },
+      onDelete: 'SET NULL',
+    });
+    Patient.hasMany(db.Medicament, {
+      foreignKey: 'PatientId',
+    });
+    Patient.hasMany(db.Indicateur, {
+      foreignKey: 'PatientId',
+    });
+    Patient.hasMany(db.Prescription, {
+      foreignKey: 'PatientId',
+    });
+  };
 
-Medecin.hasMany(Patient);
-Patient.belongsTo(User, {
-  foreignKey: {
-    name: 'UserId',
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  onDelete: 'CASCADE'
-});
-
-Patient.belongsTo(Medecin, {
-  foreignKey: {
-    name: 'MedecinId',
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  onDelete: 'SET NULL'
-});
-
-module.exports = Patient;
+  return Patient;
+};
