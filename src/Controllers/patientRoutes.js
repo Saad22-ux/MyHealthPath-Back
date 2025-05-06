@@ -44,10 +44,19 @@ router.get('/get-patients', async (req, res) => {
   }
 });
 
-
 router.post('/get-patients/:id/suspendre',async (req,res)=>{
   const patientId = req.params.id;
-  const result = await suspendrePatient(patientId);
+  const userId = req.session.user.id; 
+    
+  const medecin = await Medecin.findOne({ where: { UserId: userId } });
+
+  if (!medecin) {
+    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+  }
+
+  const medecinId = medecin.id;
+
+  const result = await suspendrePatient(patientId,medecinId);
 
   if (result.success) {
     res.status(200).json({ message: result.message });
@@ -58,7 +67,17 @@ router.post('/get-patients/:id/suspendre',async (req,res)=>{
 
 router.post('/get-patients/:id/activate',async (req,res)=>{
   const patientId = req.params.id;
-  const result = await activerPatient(patientId);
+  const userId = req.session.user.id;
+
+  const medecin = await Medecin.findOne({ where: { UserId: userId } });
+
+  if (!medecin) {
+    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+  }
+
+  const medecinId = medecin.id;
+
+  const result = await activerPatient(patientId,medecinId);
 
   if (result.success) {
     res.status(200).json({ message: result.message });

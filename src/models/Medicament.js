@@ -31,6 +31,12 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: { name: 'PatientId', type: DataTypes.BIGINT, allowNull: false },
       onDelete: 'CASCADE',
     });
+
+    Medicament.belongsTo(db.Prescription, {
+      foreignKey: { name: 'PrescriptionId', type: DataTypes.BIGINT, allowNull: true },
+      onDelete: 'CASCADE',
+    });
+    
   };
 
   return Medicament;

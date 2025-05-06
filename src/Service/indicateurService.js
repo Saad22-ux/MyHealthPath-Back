@@ -1,21 +1,38 @@
-const { Indicateur, Patient } = require('../models');
+const { Indicateur, Patient, Prescription } = require('../models');
 
-async function ajouterIndicateur(indicateurDTO, patientId){
-    try{
-        const patient = Patient.findByPk(patientId);
+async function ajouterIndicateur(indicateurDTO, patientId, prescriptionId){
+    try {
+        const patient = await Patient.findByPk(patientId);
+        const prescription = await Prescription.findByPk(prescriptionId);
 
-        if(!patient){
-            return ({ success: false, message: 'Patient not found' });
+        if (!patient || !prescription || prescription.PatientId !== patientId) {
+            return { success: false, message: 'Patient or Prescription not found or mismatch' };
         }
 
-        const indicateur = Indicateur.create({
-            type: indicateurDTO.type,
-            valeur: indicateurDTO.valeur,
-            date_mesure: indicateurDTO.date_mesure,
-            PatientId: patientId
+        const today = new Date().toISOString().slice(0, 10);
+
+        const existing = await Indicateur.findOne({
+            where: {
+                nom: indicateurDTO.nom,
+                PatientId: patientId,
+                PrescriptionId: prescriptionId,
+                date_mesure: today
+            }
         });
 
-        return ({ success: true, data: indicateur });
+        if (existing) {
+            return { success: false, message: 'Mesure déjà soumise aujourd’hui pour cet indicateur' };
+        }
+
+        const indicateur = await Indicateur.create({
+            nom: indicateurDTO.nom,
+            valeur: indicateurDTO.valeur,
+            date_mesure: today,
+            PatientId: patientId,
+            PrescriptionId: prescriptionId
+        });
+
+        return { success: true, data: indicateur };
     } catch (error) {
         console.error('Error adding indicator:', error);
         return { success: false, message: 'Server error' };

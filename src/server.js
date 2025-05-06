@@ -7,6 +7,8 @@ const adminRoutes = require('./Controllers/adminRoutes');
 const patientRoutes = require('./Controllers/patientRoutes');
 const medicamentRoutes = require('./Controllers/medicamentRoutes');
 const indicateurRoutes = require('./Controllers/indicateurRoutes');
+const prescriptionRoutes = require('./Controllers/prescriptionRoutes');
+const journalSanteRoutes = require('./Controllers/journalSanteRoutes');
 const sequelize = require('./config/database');
 const cors = require('cors');
 
@@ -49,6 +51,8 @@ app.use(adminRoutes);
 app.use(patientRoutes);
 app.use(medicamentRoutes);
 app.use(indicateurRoutes);
+app.use(prescriptionRoutes);
+app.use(journalSanteRoutes);
 
 
 sequelize.authenticate()

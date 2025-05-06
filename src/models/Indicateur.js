@@ -1,22 +1,14 @@
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize, DataTypes) => { 
   const Indicateur = sequelize.define('Indicateur', {
     id: {
       type: DataTypes.BIGINT,
       primaryKey: true,
       autoIncrement: true,
     },
-    type: {
+    nom: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    valeur: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    date: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
-    },
+    }
   }, {
     tableName: 'Indicateur',
     timestamps: false,
@@ -24,8 +16,16 @@ module.exports = (sequelize, DataTypes) => {
 
   Indicateur.associate = (db) => {
     Indicateur.belongsTo(db.Patient, {
-      foreignKey: { name: 'PatientId', type: DataTypes.BIGINT, allowNull: false },
+      foreignKey: { name: 'PatientId', allowNull: false },
       onDelete: 'CASCADE',
+    });
+    Indicateur.belongsTo(db.Prescription, {
+      foreignKey: { name: 'PrescriptionId', allowNull: false },
+      onDelete: 'CASCADE',
+    });
+
+    Indicateur.hasMany(db.SuiviIndicateur, {
+      foreignKey: 'IndicateurId'
     });
   };
 

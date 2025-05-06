@@ -39,6 +39,12 @@ module.exports = (sequelize, DataTypes) => {
   User.beforeCreate(async (user) => {
     user.password = await bcrypt.hash(user.password, 10);
   });
+  User.associate = (db) => {
+    User.hasOne(db.Patient, {
+      foreignKey: 'UserId',
+      onDelete: 'CASCADE',
+    });    
+  };
 
   return User;
 };

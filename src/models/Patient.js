@@ -13,11 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    isSubscribed: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
-    },
     state: {
       type: DataTypes.ENUM('Danger', 'Normal', 'Good'),
       allowNull: false,
@@ -32,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
     Patient.belongsTo(db.User, {
       foreignKey: { name: 'UserId', type: DataTypes.BIGINT, allowNull: false },
       onDelete: 'CASCADE',
-    });
-    Patient.belongsTo(db.Medecin, {
-      foreignKey: { name: 'MedecinId', type: DataTypes.BIGINT, allowNull: true },
-      onDelete: 'SET NULL',
     });
     Patient.hasMany(db.Medicament, {
       foreignKey: 'PatientId',
