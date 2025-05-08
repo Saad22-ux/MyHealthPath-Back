@@ -1,4 +1,4 @@
-const { User, Medecin, Patient, Medicament, Indicateur, Patient_Medecin_Link } = require('../models');
+const { User, Medecin, Patient, Medicament, Indicateur, Patient_Medecin_Link, SuiviMedicament, SuiviIndicateur, JournalSante } = require('../models');
 const { sendPatientCredentials } = require('../utils/sendMail');
 const validatePatient = require('../formValidator/patientFormValidator'); 
 const bcrypt = require('bcrypt');
@@ -204,10 +204,60 @@ async function getPatientDetails(patientId) {
   }
 }
 
+const getPatientStatistics = async (patientId) => {
+  try {
+    const suiviMedicamentStats = await SuiviMedicament.findAll({
+      where: { '$JournalSante.PatientId$': patientId },
+      include: [
+        {
+          model: Medicament,
+          attributes: ['name', 'dose', 'frequency'],
+        },
+        {
+          model: JournalSante,
+          where: { PatientId: patientId },
+          attributes: ['date'],
+        },
+      ],
+    });
+
+    
+    const suiviIndicateurStats = await SuiviIndicateur.findAll({
+      where: { '$JournalSante.PatientId$': patientId },
+      include: [
+        {
+          model: Indicateur,
+        },
+        {
+          model: JournalSante,
+          where: { PatientId: patientId },
+          attributes: ['date'],
+        },
+      ],
+    });
+
+    const medicamentsPris = suiviMedicamentStats.filter(item => item.pris === true).length;
+    const indicateursMesures = suiviIndicateurStats.filter(item => item.mesure === true).length;
+
+    return {
+      medicamentsPris,
+      indicateursMesures,
+      suiviMedicamentStats,
+      suiviIndicateurStats,
+    };
+  } catch (error) {
+    console.error('Erreur dans la récupération des statistiques :', error);
+    throw new Error('Erreur lors de la récupération des statistiques.');
+  }
+};
+
+
 
 
 module.exports = { createPatient,
                   getPatients,
                   suspendrePatient,
                   activerPatient,
-                  getPatientDetails };
+                  getPatientDetails,
+                  getPatientStatistics
+                };

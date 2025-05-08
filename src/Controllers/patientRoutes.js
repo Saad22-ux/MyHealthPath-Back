@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createPatient,getPatients,suspendrePatient,activerPatient,getPatientDetails } = require('../Service/patientService');
+const { createPatient,getPatients,suspendrePatient,activerPatient,getPatientDetails, getPatientStatistics } = require('../Service/patientService');
 const { Medecin } = require('../models');
 
 router.post('/create-patient', async (req, res) => {
@@ -96,6 +96,18 @@ router.get('/get-patients/:id', async (req, res) => {
     res.status(200).json(result.data);
   } else {
     res.status(404).json({ message: result.message });
+  }
+});
+
+router.get('/get-patients/:patientId/statistiques', async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const stats = await getPatientStatistics(patientId);
+
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('Erreur lors de l\'appel des statistiques du patient:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des statistiques.' });
   }
 });
 
