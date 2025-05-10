@@ -2,7 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { Medecin } = require('../models');
 
-const { createPrescription, updatePrescription, getPrescriptionDetails } = require('../Service/prescriptionService');
+const { createPrescription, 
+        updatePrescription,
+        getPrescriptionDetails,
+        getIndicateursParSpecialite, 
+        desactiverPrescription,
+        activerPrescription } = require('../Service/prescriptionService');
 
 
 router.post('/add-prescription/:patientId', async (req, res) => {
@@ -38,5 +43,32 @@ router.get('/get-details/:prescriptionId', async (req, res) => {
   const result = await getPrescriptionDetails(prescriptionId);
   res.status(result.success ? 200 : 404).json(result);
 });
+
+
+router.put('/desactiver-prescription/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const result = await desactiverPrescription(id);
+
+  if (result.success) {
+    res.status(200).json(result);
+  } else {
+    res.status(404).json(result);
+  }
+});
+
+router.put('/activer-prescription/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const result = await activerPrescription(id);
+
+  if (result.success) {
+    res.status(200).json(result);
+  } else {
+    res.status(404).json(result);
+  }
+});
+
+router.get('/indicateurs-par-specialite/:medecinId', getIndicateursParSpecialite);
 
 module.exports = router;

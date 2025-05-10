@@ -2,10 +2,18 @@ const { Prescription, Medicament, Patient, Medecin, Indicateur } = require('../m
 
 async function createPrescription(medecinId, patientId, prescriptionDTO) {
   try {
-    const { description, medicaments } = prescriptionDTO;
+    const { description, medicaments, indicateurs } = prescriptionDTO;
+
+    if (!Array.isArray(medicaments) || medicaments.length === 0 || 
+        !Array.isArray(indicateurs) || indicateurs.length === 0) {
+      return { success: false, message: 'La prescription doit contenir au moins un médicament et un indicateur.' };
+    }
 
     const patient = await Patient.findByPk(patientId);
     if (!patient) return { success: false, message: 'Patient not found' };
+
+    const medecin = await Medecin.findByPk(medecinId);
+    if (!medecin) return { success: false, message: 'Medecin not found' };
 
     const prescription = await Prescription.create({
       description,
@@ -22,17 +30,6 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
       PrescriptionId: prescription.id
     }));
     await Promise.all(medicamentPromises);
-
-    const medecin = await Medecin.findByPk(medecinId);
-    if (!medecin) return { success: false, message: 'Medecin not found' };
-
-    const indicateursParSpecialite = {
-      'Diabète': ['Glycémie', 'HbA1c'],
-      'Hypertension': ['Tension artérielle'],
-      'Cholesterol': ['LDL', 'HDL', 'Triglycérides'],
-    };
-
-    const indicateurs = indicateursParSpecialite[medecin.specialite] || [];
 
     const indicateurPromises = indicateurs.map(ind => Indicateur.create({
       nom: ind,
@@ -103,10 +100,73 @@ async function getPrescriptionDetails(prescriptionId) {
       return { success: false, message: 'Server error' };
     }
 }
+
+async function getIndicateursParSpecialite(req, res) {
+  try {
+    const { medecinId } = req.params;
+
+    const medecin = await Medecin.findByPk(medecinId);
+    if (!medecin) {
+      return res.status(404).json({ error: 'Médecin non trouvé' });
+    }
+
+    const indicateursParSpecialite = {
+      'Diabète': ['Glycémie', 'HbA1c'],
+      'Hypertension': ['Tension artérielle'],
+      'Cholesterol': ['LDL', 'HDL', 'Triglycérides'],
+    };
+
+    const indicateurs = indicateursParSpecialite[medecin.specialite] || [];
+
+    res.status(200).json({ indicateurs });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des indicateurs :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+}
+
+async function desactiverPrescription(prescriptionId) {
+  try {
+    const prescription = await Prescription.findByPk(prescriptionId);
+
+    if (!prescription) {
+      return { success: false, message: 'Prescription non trouvée' };
+    }
+
+    prescription.isActive = false;
+    await prescription.save();
+
+    return { success: true, message: 'Statut de la prescription mis à jour avec succès' };
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du statut de la prescription :', error);
+    return { success: false, message: 'Erreur serveur' };
+  }
+}
+
+async function activerPrescription(prescriptionId) {
+  try {
+    const prescription = await Prescription.findByPk(prescriptionId);
+
+    if (!prescription) {
+      return { success: false, message: 'Prescription non trouvée' };
+    }
+
+    prescription.isActive = true;
+    await prescription.save();
+
+    return { success: true, message: 'Statut de la prescription mis à jour avec succès' };
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du statut de la prescription :', error);
+    return { success: false, message: 'Erreur serveur' };
+  }
+}
   
   module.exports = {
     createPrescription,
     updatePrescription,
-    getPrescriptionDetails
+    getPrescriptionDetails,
+    getIndicateursParSpecialite,
+    desactiverPrescription,
+    activerPrescription
   };
   
