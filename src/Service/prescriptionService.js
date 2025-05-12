@@ -72,7 +72,7 @@ async function updatePrescription(prescriptionId, updatedData) {
         await Medicament.bulkCreate(newMeds);
       }
   
-      return { success: true, message: 'Prescription updated successfully' };
+      return { success: true, message: 'Prescription updated successfully', data: prescription };
   
     } catch (err) {
       console.error('Error updating prescription:', err);
@@ -83,7 +83,7 @@ async function updatePrescription(prescriptionId, updatedData) {
 async function getPrescriptionDetails(prescriptionId) {
     try {
       const prescription = await Prescription.findByPk(prescriptionId, {
-        include: [{ model: Medicament, as: 'medicaments' }]
+        include: [{ model: Medicament, as: 'medicaments' }, { model: Indicateur, as: 'indicateurs', attributes: ['nom'] }]
       });
   
       if (!prescription) {
@@ -103,9 +103,10 @@ async function getPrescriptionDetails(prescriptionId) {
 
 async function getIndicateursParSpecialite(req, res) {
   try {
-    const { medecinId } = req.params;
+    const userId = req.session.user.id; 
+    
+    const medecin = await Medecin.findOne({ where: { UserId: userId } });
 
-    const medecin = await Medecin.findByPk(medecinId);
     if (!medecin) {
       return res.status(404).json({ error: 'Médecin non trouvé' });
     }
@@ -136,7 +137,7 @@ async function desactiverPrescription(prescriptionId) {
     prescription.isActive = false;
     await prescription.save();
 
-    return { success: true, message: 'Statut de la prescription mis à jour avec succès' };
+    return { success: true, message: 'Statut de la prescription mis à jour avec succès', data: prescription };
   } catch (error) {
     console.error('Erreur lors de la mise à jour du statut de la prescription :', error);
     return { success: false, message: 'Erreur serveur' };
@@ -154,7 +155,7 @@ async function activerPrescription(prescriptionId) {
     prescription.isActive = true;
     await prescription.save();
 
-    return { success: true, message: 'Statut de la prescription mis à jour avec succès' };
+    return { success: true, message: 'Statut de la prescription mis à jour avec succès', data: prescription };
   } catch (error) {
     console.error('Erreur lors de la mise à jour du statut de la prescription :', error);
     return { success: false, message: 'Erreur serveur' };

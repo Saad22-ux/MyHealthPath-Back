@@ -69,6 +69,6 @@ router.put('/activer-prescription/:id', async (req, res) => {
   }
 });
 
-router.get('/indicateurs-par-specialite/:medecinId', getIndicateursParSpecialite);
+router.get('/indicateurs-par-specialite', getIndicateursParSpecialite);
 
 module.exports = router;

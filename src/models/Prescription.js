@@ -5,6 +5,9 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true,
     },
+    date: {
+      type: DataTypes.STRING
+    },
     description: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -30,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
     Prescription.hasMany(db.Medicament, {
       foreignKey: 'PrescriptionId',
       as: 'medicaments'
+    });
+    Prescription.hasMany(db.Indicateur, {
+      foreignKey: 'PrescriptionId',
+      as: 'indicateurs'
     });
   };
 

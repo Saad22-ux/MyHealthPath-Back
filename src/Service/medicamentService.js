@@ -12,6 +12,7 @@ async function ajouterMedicament(medicamentDTO, patientId) {
       name: medicamentDTO.name,
       dose: medicamentDTO.dose,
       frequency: medicamentDTO.frequency,
+      duree: medicamentDTO.duree,
       PatientId: patientId
     });
 
@@ -33,7 +34,7 @@ async function supprimerMedicament(medicamentId){
 
     await medicament.destroy();
 
-    return { success: true, message: 'Medication removed successfully'};
+    return { success: true, message: 'Medication removed successfully', data: medicament };
   } catch(error){
     console.error('Error removing medication');
     return { success: false, message: 'Server error'};

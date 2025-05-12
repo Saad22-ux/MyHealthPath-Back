@@ -135,7 +135,7 @@ async function suspendrePatient(patientId, medecinId) {
 
     await link.update({ isSubscribed: false });
 
-    return { success: true, message: 'Patient access to this doctor has been suspended' };
+    return { success: true, message: 'Patient access to this doctor has been suspended', data: link.isSubscribed };
   } catch (error) {
     console.error('Error suspending patient:', error);
     return { success: false, message: 'Server error' };
@@ -168,7 +168,7 @@ async function activerPatient(patientId, medecinId) {
 
     await link.update({ isSubscribed: true });
 
-    return { success: true, message: 'Patient access to this doctor has been activated' };
+    return { success: true, message: 'Patient access to this doctor has been activated', data: link };
   } catch (error) {
     console.error('Error activating patient:', error);
     return { success: false, message: 'Server error' };
