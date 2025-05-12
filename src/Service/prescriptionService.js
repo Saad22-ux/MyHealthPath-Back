@@ -17,6 +17,7 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
 
     const prescription = await Prescription.create({
       description,
+      date: new Date().toISOString().split('T')[0],
       MedecinId: medecinId,
       PatientId: patientId,
     });
