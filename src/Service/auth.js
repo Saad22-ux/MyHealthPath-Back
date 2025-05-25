@@ -25,7 +25,7 @@ const { User, Patient } = require('../models');
           return res.status(403).json({ message: 'Account not approved yet!' });
         }
 
-        const patient = await Patient.findOne({where : userId = user.id});
+        const patient = await Patient.findOne({where : {userId: user.id}});
     
         req.session.user = {
           id: user.id,

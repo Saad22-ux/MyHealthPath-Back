@@ -62,4 +62,29 @@ async function getMedecinProfile(medecinId) {
   }
 }
 
-module.exports = { createMedecin, getMedecinProfile };
+async function updateMedecinProfile(medecinId, updatedData){
+  try {
+    const medecin = await Medecin.findByPk(medecinId, {
+      include: [{ model: User }]
+    });
+
+    if (!medecin) {
+      return { success: false, message: "Médecin non trouvé" };
+    }
+
+    if (updatedData.specialite) medecin.specialite = updatedData.specialite;
+    if (updatedData.fullName) medecin.User.fullName = updatedData.fullName;
+    if (updatedData.email) medecin.User.email = updatedData.email;
+
+    await medecin.save();
+    await medecin.User.save();
+    
+    return { success: true, message: "Profil mis à jour avec succès" };
+
+}catch (error) {
+    console.error("Erreur lors de la mise à jour du profil du médecin :", error);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
+module.exports = { createMedecin, getMedecinProfile, updateMedecinProfile };

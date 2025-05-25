@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const validateRegister = require('../formValidator/medecinFormValidator');
-const registerMedecinController = require('../Service/medecinService');
+const { createMedecin } = require('../Service/medecinService');
 
 router.post('/register',async (req,res)=>{
     const medecinDTO = req.body;
@@ -10,7 +10,7 @@ router.post('/register',async (req,res)=>{
         return res.status(400).json({ errors: validationErrors });
     }
 
-    const result = await registerMedecinController(medecinDTO);
+    const result = await createMedecin(medecinDTO);
 
     if(result.success) {
         return res.status(201).json({ success: true, message: result.message });
