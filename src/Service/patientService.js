@@ -356,6 +356,37 @@ async function getPatientDashboard(patientId) {
   }
 }
 
+async function getPatientProfile(patientId) {
+  try {
+    const patient = await Patient.findByPk(patientId, {
+      attributes: ['id', 'genre', 'date_naissance', 'UserId']
+    });
+
+    if (!patient) {
+      return { success: false, message: 'Patient introuvable.' };
+    }
+
+    const user = await User.findByPk(patient.UserId, {
+      attributes: ['id', 'fullName', 'email']
+    });
+
+    return {
+      success: true,
+      data: {
+        id: patient.id,
+        genre: patient.genre,
+        date_naissance: patient.date_naissance,
+        UserId: patient.UserId,
+        fullName: user?.fullName,
+        email: user?.email
+      }
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil patient :', error);
+    return { success: false, message: 'Erreur serveur.' };
+  }
+}
+
 
 
 
@@ -366,5 +397,6 @@ module.exports = { createPatient,
                   getPatientDetails,
                   getPatientStatistics,
                   updatePatientProfile,
-                  getPatientDashboard
+                  getPatientDashboard,
+                  getPatientProfile
                 };

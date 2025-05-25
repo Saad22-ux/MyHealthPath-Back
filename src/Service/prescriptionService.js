@@ -82,6 +82,17 @@ async function updatePrescription(prescriptionId, updatedData) {
         }));
         await Medicament.bulkCreate(newMeds);
       }
+
+      if (Array.isArray(updatedData.indicateurs)) {
+      await Indicateur.destroy({ where: { PrescriptionId: prescriptionId } });
+
+      const newIndicateurs = updatedData.indicateurs.map(nom => ({
+        nom,
+        PatientId: prescription.PatientId,
+        PrescriptionId: prescription.id
+      }));
+      await Indicateur.bulkCreate(newIndicateurs);
+    }
   
       return { success: true, message: 'Prescription updated successfully', data: prescription };
   

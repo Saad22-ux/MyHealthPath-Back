@@ -7,8 +7,10 @@ const { createPatient,
         getPatientDetails, 
         getPatientStatistics,
         updatePatientProfile,
-        getPatientDashboard } = require('../Service/patientService');
-const { Medecin } = require('../models');
+        getPatientDashboard,
+        getPatientProfile
+         } = require('../Service/patientService');
+const { Medecin, Patient } = require('../models');
 
 router.post('/create-patient', async (req, res) => {
   const userId = req.session.user.id; 
@@ -139,6 +141,25 @@ router.get('/dashboard/:id', async (req,res) => {
     res.status(200).json(result.dashboard);
   } else {
     res.status(404).json({ error: result.message });
+  }
+});
+
+router.get('/profilePatient', async (req, res) => {
+  const userId = req.session.user.id; 
+    
+  const patient = await Patient.findOne({ where: { UserId: userId } });
+
+  if (!patient) {
+    return res.status(404).json({ message: "Patient non trouvé pour cet utilisateur." });
+  }
+
+  const patientId = patient.id;
+  const result = await getPatientProfile(patientId);
+
+  if (result.success) {
+    res.status(200).json(result.data);
+  } else {
+    res.status(404).json({ message: result.message });
   }
 });
 

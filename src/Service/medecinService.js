@@ -51,6 +51,7 @@ async function getMedecinProfile(medecinId) {
       data: {
         id: medecin.id,
         specialite: medecin.specialite,
+        UserId: medecin.UserId,
         fullName: user?.fullName,
         email: user?.email
       }
