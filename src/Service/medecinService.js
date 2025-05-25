@@ -32,4 +32,33 @@ async function createMedecin(medecinDTO){
     }
 }
 
-module.exports = createMedecin;
+async function getMedecinProfile(medecinId) {
+  try {
+    const medecin = await Medecin.findByPk(medecinId, {
+      attributes: ['id', 'specialite', 'UserId']
+    });
+
+    if (!medecin) {
+      return { success: false, message: 'Médecin introuvable.' };
+    }
+
+    const user = await User.findByPk(medecin.UserId, {
+      attributes: ['id', 'fullName', 'email']
+    });
+
+    return {
+      success: true,
+      data: {
+        id: medecin.id,
+        specialite: medecin.specialite,
+        fullName: user?.fullName,
+        email: user?.email
+      }
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil médecin :', error);
+    return { success: false, message: 'Erreur serveur.' };
+  }
+}
+
+module.exports = { createMedecin, getMedecinProfile };
