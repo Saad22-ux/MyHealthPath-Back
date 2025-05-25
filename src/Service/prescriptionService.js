@@ -4,9 +4,15 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
   try {
     const { description, medicaments, indicateurs } = prescriptionDTO;
 
-    if (!Array.isArray(medicaments) || medicaments.length === 0 || 
-        !Array.isArray(indicateurs) || indicateurs.length === 0) {
-      return { success: false, message: 'La prescription doit contenir au moins un médicament et un indicateur.' };
+    if (!Array.isArray(medicaments) && !Array.isArray(indicateurs)) {
+      return { success: false, message: 'Données invalides.' };
+    }
+
+    if ((medicaments.length === 0) && (indicateurs.length === 0)) {
+      return {
+        success: false,
+        message: 'La prescription doit contenir au moins un médicament ou un indicateur.'
+      };
     }
 
     const patient = await Patient.findByPk(patientId);
@@ -22,6 +28,7 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
       PatientId: patientId,
     });
 
+  if (Array.isArray(medicaments) && medicaments.length > 0) {
     const medicamentPromises = medicaments.map(med => Medicament.create({
       name: med.name,
       dose: med.dose,
@@ -31,13 +38,16 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
       PrescriptionId: prescription.id
     }));
     await Promise.all(medicamentPromises);
+  }
 
+  if (Array.isArray(indicateurs) && indicateurs.length > 0) {
     const indicateurPromises = indicateurs.map(ind => Indicateur.create({
       nom: ind,
       PatientId: patientId,
       PrescriptionId: prescription.id
     }));
     await Promise.all(indicateurPromises);
+  }
 
     return {
       success: true,

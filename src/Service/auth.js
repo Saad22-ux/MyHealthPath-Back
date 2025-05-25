@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { User } = require('../models');
+const { User, Patient } = require('../models');
 
   
   async function logUser(req,res){
@@ -25,15 +25,16 @@ const { User } = require('../models');
           return res.status(403).json({ message: 'Account not approved yet!' });
         }
 
-        
+        const patient = await Patient.findOne({where : userId = user.id});
     
         req.session.user = {
           id: user.id,
           email: user.email,
-          role: user.role
+          role: user.role,
+          patientId: patient ? patient.id : null
         };
         
-        res.status(200).json({ message: 'Logged in successfully', role: user.role});
+        res.status(200).json({ message: 'Logged in successfully', role: user.role, patientId: patient ? patient.id : null});
       } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });
