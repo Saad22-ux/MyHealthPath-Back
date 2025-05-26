@@ -207,8 +207,19 @@ async function getPatientDetails(patientId) {
   }
 }
 
-const getPatientStatistics = async (patientId) => {
+const getPatientStatistics = async (patientId, prescriptionId) => {
   try {
+    const patient = await Patient.findByPk(patientId, {
+      include: [
+        {
+          model: User,
+          attributes: ['fullName']  // ensure this field exists in your User model and DB
+        }
+      ]
+    });
+
+    const fullName = patient?.User?.fullName || 'Inconnu';
+
     const suiviMedicamentStats = await SuiviMedicament.findAll({
       where: { '$JournalSante.PatientId$': patientId },
       include: [
@@ -218,7 +229,7 @@ const getPatientStatistics = async (patientId) => {
         },
         {
           model: JournalSante,
-          where: { PatientId: patientId },
+          where: { PatientId: patientId, PrescriptionId: prescriptionId},
           attributes: ['date'],
         },
       ],
@@ -233,7 +244,7 @@ const getPatientStatistics = async (patientId) => {
         },
         {
           model: JournalSante,
-          where: { PatientId: patientId },
+          where: { PatientId: patientId ,PrescriptionId: prescriptionId},
           attributes: ['date'],
         },
       ],
@@ -247,6 +258,10 @@ const getPatientStatistics = async (patientId) => {
       indicateursMesures,
       suiviMedicamentStats,
       suiviIndicateurStats,
+      patient: {
+        id: patient?.id,
+        fullName: fullName
+      }
     };
   } catch (error) {
     console.error('Erreur dans la récupération des statistiques :', error);

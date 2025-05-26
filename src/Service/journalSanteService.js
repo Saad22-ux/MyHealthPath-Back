@@ -1,12 +1,13 @@
-const { JournalSante, SuiviMedicament, SuiviIndicateur } = require('../models');
+const { JournalSante, SuiviMedicament, SuiviIndicateur, Prescription} = require('../models');
 
 async function createJournalSante(patientId, data) {
   try {
-    const { date, medicaments, indicateurs } = data;
+    const { date, medicaments, indicateurs, prescriptionId} = data;
 
     const journal = await JournalSante.create({
       PatientId: patientId,
-      date: date || new Date()
+      date: date || new Date(),
+      PrescriptionId: data.prescriptionId
     });
 
     if (Array.isArray(medicaments)) {

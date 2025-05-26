@@ -105,7 +105,7 @@ async function updatePrescription(prescriptionId, updatedData) {
 async function getPrescriptionDetails(prescriptionId) {
     try {
       const prescription = await Prescription.findByPk(prescriptionId, {
-        include: [{ model: Medicament, as: 'medicaments' }, { model: Indicateur, as: 'indicateurs', attributes: ['nom'] }]
+        include: [{ model: Medicament, as: 'medicaments' }, { model: Indicateur, as: 'indicateurs'}]
       });
   
       if (!prescription) {

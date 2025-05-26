@@ -10,7 +10,7 @@ const { createPatient,
         getPatientDashboard,
         getPatientProfile
          } = require('../Service/patientService');
-const { Medecin, Patient } = require('../models');
+const { Medecin, Patient, Prescription } = require('../models');
 
 router.post('/create-patient', async (req, res) => {
   const userId = req.session.user.id; 
@@ -108,10 +108,10 @@ router.get('/get-patients/:id', async (req, res) => {
   }
 });
 
-router.get('/get-patients/:patientId/statistiques', async (req, res) => {
+router.get('/get-patients/:patientId/:prescriptionId/statistiques', async (req, res) => {
   try {
-    const { patientId } = req.params;
-    const stats = await getPatientStatistics(patientId);
+    const { patientId, prescriptionId } = req.params;
+    const stats = await getPatientStatistics(patientId,prescriptionId);
 
     res.status(200).json(stats);
   } catch (error) {
