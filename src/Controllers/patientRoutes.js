@@ -133,17 +133,6 @@ router.put('/get-patients/:id/update', async (req, res) => {
   }
 });
 
-router.get('/dashboard/:id', async (req,res) => {
-  const { id } = req.params;
-  const result = await getPatientDashboard(id);
-
-  if (result.success) {
-    res.status(200).json(result.dashboard);
-  } else {
-    res.status(404).json({ error: result.message });
-  }
-});
-
 router.get('/profilePatient', async (req, res) => {
   const userId = req.session.user.id; 
     

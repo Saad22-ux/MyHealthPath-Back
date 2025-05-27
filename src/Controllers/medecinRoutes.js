@@ -4,7 +4,12 @@ const { Medecin } = require('../models');
 const { getMedecinProfile } = require('../Service/medecinService');
 
 router.get('/profileMedecin', async (req, res) => {
-    const userId = req.session.user.id; 
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ message: 'Utilisateur non authentifié.' });
+    }
+  
+    const userId = req.session.user.id;
+    
     const medecin = await Medecin.findOne({ where: { UserId: userId } });
   
     if (!medecin) {

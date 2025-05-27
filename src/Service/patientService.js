@@ -279,94 +279,34 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     const user = await User.findByPk(patient.UserId);
 
-    await patient.update(updatedFields);
-    if(user){
-      await user.update(updatedFields);
+    // Split fields for update
+    const patientFields = {};
+    const userFields = {};
+
+    if ('genre' in updatedFields) patientFields.genre = updatedFields.genre;
+    if ('date_naissance' in updatedFields) patientFields.date_naissance = updatedFields.date_naissance;
+
+    if ('fullName' in updatedFields) userFields.fullName = updatedFields.fullName;
+    if ('email' in updatedFields) userFields.email = updatedFields.email;
+
+    // Update patient and get updated instance
+    const updatedPatient = await patient.update(patientFields);
+
+    // Update user and get updated instance
+    let updatedUser = null;
+    if (user) {
+      updatedUser = await user.update(userFields);
     }
 
+    // Return both updated patient and user info
     return {
       success: true,
       message: 'Profil du patient mis à jour avec succès',
-      patient: patient,
+      patient: updatedPatient,
+      user: updatedUser,
     };
   } catch (error) {
     console.error('Erreur lors de la mise à jour du profil du patient :', error);
-    return { success: false, message: 'Erreur serveur' };
-  }
-}
-
-async function getPatientDashboard(patientId) {
-  try {
-    const patient = await Patient.findByPk(patientId);
-    if (!patient) {
-      return { success: false, message: 'Patient non trouvé' };
-    }
-
-    const prescriptions = await Prescription.findAll({
-      where: { PatientId: patientId, isActive: true },
-      include: [
-        {
-          model: Medicament,
-          as: 'medicaments'
-        }
-      ]
-    });
-
-    const indicateurs = await Indicateur.findAll({
-      where: { PatientId: patientId },
-    });
-
-    const suiviIndicateurs = await SuiviIndicateur.findAll({
-      include: [
-        {
-          model: JournalSante,
-          where: { PatientId: patientId },
-          attributes: ["date"] 
-        },
-        {
-          model: Indicateur
-        }
-      ],
-       order: [[{ model: JournalSante }, 'date', 'DESC']],
-      limit: 5
-    });
-
-
-    const suiviMedicaments = await SuiviMedicament.findAll({
-      include: [
-        {
-          model: JournalSante,
-          where: { PatientId: patientId },
-          attributes: ["date"]
-        },
-        {
-          model: Medicament
-        }
-      ],
-       order: [[{ model: JournalSante }, 'date', 'DESC']],
-      limit: 5
-    });
-
-
-    return {
-      success: true,
-      dashboard: {
-        patient: {
-          id: patient.id,
-          nom: patient.nom,
-          prenom: patient.prenom
-        },
-        prescriptions,
-        indicateurs,
-        suiviRecents: {
-          indicateurs: suiviIndicateurs,
-          medicaments: suiviMedicaments
-        }
-      }
-    };
-
-  } catch (error) {
-    console.error('Erreur lors de la récupération du dashboard du patient :', error);
     return { success: false, message: 'Erreur serveur' };
   }
 }
@@ -412,6 +352,6 @@ module.exports = { createPatient,
                   getPatientDetails,
                   getPatientStatistics,
                   updatePatientProfile,
-                  getPatientDashboard,
+                  //getPatientDashboard,
                   getPatientProfile
                 };
