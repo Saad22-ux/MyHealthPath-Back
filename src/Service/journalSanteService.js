@@ -1,25 +1,61 @@
-const { JournalSante, SuiviMedicament, SuiviIndicateur, Prescription} = require('../models');
+const { JournalSante, SuiviMedicament, SuiviIndicateur, Indicateur, Patient } = require('../models');
 
 async function createJournalSante(patientId, data) {
   try {
-    const { date, medicaments, indicateurs, prescriptionId} = data;
+    const { date, medicaments, indicateurs, prescriptionId } = data;
+
+    const aMedicaments = Array.isArray(medicaments) && medicaments.length > 0;
+    const aIndicateurs = Array.isArray(indicateurs) && indicateurs.length > 0;
+
+    let pris = false;
+
+    if (aMedicaments && aIndicateurs) {
+      pris = true;
+    }
 
     const journal = await JournalSante.create({
       PatientId: patientId,
       date: date || new Date(),
-      PrescriptionId: data.prescriptionId
+      PrescriptionId: prescriptionId,
+      pris: pris
     });
 
-    if (Array.isArray(medicaments)) {
+    if (pris) {
       const suivisMeds = medicaments.map(med => ({
         MedicamentId: med.medicamentId,
         pris: med.pris,
         JournalSanteId: journal.id
       }));
       await SuiviMedicament.bulkCreate(suivisMeds);
-    }
 
-    if (Array.isArray(indicateurs)) {
+      const seuilsIndicateurs = {
+        'Glycémie à jeun': { dangerMin: 0, normalMin: 70, normalMax: 100, dangerMax: 125 },
+        'Glycémie postprandiale': { dangerMin: 0, normalMin: 70, normalMax: 140, dangerMax: 200 },
+        'HbA1c': { dangerMin: 0, normalMin: 4, normalMax: 5.7, dangerMax: 6.4 },
+        'Poids': { dangerMin: 0, normalMin: 50, normalMax: 100, dangerMax: 150 },
+        'IMC': { dangerMin: 0, normalMin: 18.5, normalMax: 24.9, dangerMax: 30 },
+        'Tension artérielle': { dangerMin: 0, normalMin: 90, normalMax: 120, dangerMax: 140 },
+        'Cholestérol total': { dangerMin: 0, normalMin: 125, normalMax: 200, dangerMax: 240 },
+        'LDL': { dangerMin: 0, normalMin: 50, normalMax: 100, dangerMax: 130 },
+        'HDL': { dangerMin: 40, normalMin: 40, normalMax: 60, dangerMax: 100 },
+        'Triglycérides': { dangerMin: 0, normalMin: 50, normalMax: 150, dangerMax: 200 },
+        'Albuminurie': { dangerMin: 0, normalMin: 0, normalMax: 30, dangerMax: 300 },
+        'Créatinine': { dangerMin: 0, normalMin: 0.6, normalMax: 1.3, dangerMax: 2.0 },
+        'Fréquence cardiaque': { dangerMin: 0, normalMin: 60, normalMax: 100, dangerMax: 120 },
+        'Électrolytes (Na, K)': { dangerMin: 0, normalMin: 135, normalMax: 145, dangerMax: 155 },
+      };
+
+      const idsIndicateurs = indicateurs.map(ind => ind.indicateurId);
+      const indicateursDB = await Indicateur.findAll({
+        where: { id: idsIndicateurs },
+        attributes: ['id', 'nom']
+      });
+
+      const mapIdToNom = {};
+      indicateursDB.forEach(ind => {
+        mapIdToNom[ind.id] = ind.nom;
+      });
+
       const suivisInd = indicateurs.map(ind => ({
         IndicateurId: ind.indicateurId,
         mesure: ind.mesure,
@@ -27,14 +63,44 @@ async function createJournalSante(patientId, data) {
         JournalSanteId: journal.id
       }));
       await SuiviIndicateur.bulkCreate(suivisInd);
+
+      let etatGlobal = 'Good';
+      for (const ind of indicateurs) {
+        const nomInd = mapIdToNom[ind.indicateurId];
+        if (!nomInd || !seuilsIndicateurs[nomInd]) continue;
+
+        const seuils = seuilsIndicateurs[nomInd];
+        const valeur = parseFloat(ind.valeur);
+
+        if (valeur < seuils.dangerMin || valeur > seuils.dangerMax) {
+          etatGlobal = 'Danger';
+          break;
+        } else if (valeur < seuils.normalMin || valeur > seuils.normalMax) {
+          if (etatGlobal !== 'Danger') etatGlobal = 'Normal';
+        }
+      }
+
+      if (etatGlobal !== 'Good') {
+        const patient = await Patient.findByPk(patientId);
+        if (patient) {
+          patient.state = etatGlobal;
+          await patient.save();
+        }
+      }
     }
 
-    return { success: true, message: 'Journal de santé enregistré avec succès.' };
+    return {
+      success: true,
+      message: pris
+        ? 'Journal de santé enregistré avec succès.'
+        : 'Journal partiel : indicateurs ou médicaments manquants, rien enregistré.'
+    };
 
   } catch (error) {
     console.error('Erreur lors de la création du journal de santé :', error);
     return { success: false, message: 'Erreur serveur.' };
   }
 }
+
 
 module.exports = { createJournalSante };

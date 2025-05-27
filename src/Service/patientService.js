@@ -54,6 +54,8 @@ async function createPatient(patientDTO, medecinId) {
       fullName: patientDTO.fullName,
       email: patientDTO.email,
       password: generatedPassword,
+      telephone: patientDTO.telephone,
+      adress: patientDTO.adress,
       role: 'patient',
       isApproved: true,
     });
@@ -184,7 +186,13 @@ async function getPatientDetails(patientId) {
           model: User
         },
         {
-          model: Prescription
+          model: Prescription,
+          include: [
+        {
+          model: Medecin,
+          include: [User] 
+        }
+          ]
         },
         {
           model: Medecin
@@ -213,7 +221,7 @@ const getPatientStatistics = async (patientId, prescriptionId) => {
       include: [
         {
           model: User,
-          attributes: ['fullName']  // ensure this field exists in your User model and DB
+          attributes: ['fullName']  
         }
       ]
     });
@@ -279,7 +287,6 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     const user = await User.findByPk(patient.UserId);
 
-    // Split fields for update
     const patientFields = {};
     const userFields = {};
 
@@ -288,17 +295,16 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     if ('fullName' in updatedFields) userFields.fullName = updatedFields.fullName;
     if ('email' in updatedFields) userFields.email = updatedFields.email;
+    if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
+    if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
 
-    // Update patient and get updated instance
     const updatedPatient = await patient.update(patientFields);
 
-    // Update user and get updated instance
     let updatedUser = null;
     if (user) {
       updatedUser = await user.update(userFields);
     }
 
-    // Return both updated patient and user info
     return {
       success: true,
       message: 'Profil du patient mis à jour avec succès',
@@ -322,7 +328,7 @@ async function getPatientProfile(patientId) {
     }
 
     const user = await User.findByPk(patient.UserId, {
-      attributes: ['id', 'fullName', 'email']
+      attributes: ['id', 'fullName', 'email', 'telephone', 'adress']
     });
 
     return {
@@ -333,7 +339,9 @@ async function getPatientProfile(patientId) {
         date_naissance: patient.date_naissance,
         UserId: patient.UserId,
         fullName: user?.fullName,
-        email: user?.email
+        email: user?.email,
+        telephone: user?.telephone,
+        adress: user?.adress
       }
     };
   } catch (error) {

@@ -9,6 +9,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('Diabète', 'Hypertension', 'Cholesterol'),
       allowNull: false,
     },
+    numeroIdentification: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   }, {
     tableName: 'Medecin',
     timestamps: false,

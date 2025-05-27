@@ -134,9 +134,43 @@ async function getIndicateursParSpecialite(req, res) {
     }
 
     const indicateursParSpecialite = {
-      'Diabète': ['Glycémie', 'HbA1c'],
-      'Hypertension': ['Tension artérielle'],
-      'Cholesterol': ['LDL', 'HDL', 'Triglycérides'],
+      'Diabète': [
+        'Glycémie à jeun',
+        'Glycémie postprandiale',
+        'HbA1c',
+        'Poids',
+        'IMC',
+        'Tension artérielle',
+        'Cholestérol total',
+        'LDL',
+        'HDL',
+        'Triglycérides',
+        'Albuminurie',
+        'Créatinine'
+      ],
+      'Hypertension': [
+        'Tension artérielle',
+        'Fréquence cardiaque',
+        'Poids',
+        'IMC',
+        'Cholestérol total',
+        'LDL',
+        'HDL',
+        'Triglycérides',
+        'Créatinine',
+        'Électrolytes (Na, K)'
+      ],
+      'Cholesterol': [
+        'Cholestérol total',
+        'LDL',
+        'HDL',
+        'Triglycérides',
+        'Poids',
+        'IMC',
+        'Glycémie à jeun',
+        'HbA1c',
+        'Tension artérielle'
+      ]
     };
 
     const indicateurs = indicateursParSpecialite[medecin.specialite] || [];

@@ -7,7 +7,6 @@ const { createPatient,
         getPatientDetails, 
         getPatientStatistics,
         updatePatientProfile,
-        getPatientDashboard,
         getPatientProfile
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription } = require('../models');

@@ -10,14 +10,18 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: DataTypes.NOW
     },
-    PrescriptionId: {    // Add this
+    pris: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false
+    },
+    PrescriptionId: {   
       type: DataTypes.BIGINT,
-      allowNull: true,   // depending if optional or mandatory
+      allowNull: true,   
       references: {
-        model: 'Prescription', // exact table name
+        model: 'Prescription', 
         key: 'id'
       },
-      onDelete: 'SET NULL',
+      onDelete: 'CASCADE',
       onUpdate: 'CASCADE'
     }
   }, {
@@ -31,9 +35,9 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'CASCADE'
     });
 
-    JournalSante.belongsTo(db.Prescription, {   // Add this association
+    JournalSante.belongsTo(db.Prescription, {   
       foreignKey: 'PrescriptionId',
-      onDelete: 'SET NULL'
+      onDelete: 'CASCADE'
     });
 
     JournalSante.hasMany(db.SuiviMedicament, {

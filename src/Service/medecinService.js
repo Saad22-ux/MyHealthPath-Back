@@ -1,41 +1,45 @@
 const { Medecin, User} = require('../models');
 const bcrypt = require('bcrypt');
 
-async function createMedecin(medecinDTO){
-    try {
-        const existingUser = await User.findOne({ where: { email: medecinDTO.email } });
-        if (existingUser) {
-            return { success: false, message: 'Email already in use!' };
-        }
-
-
-        const newUser = await User.create({
-            fullName: medecinDTO.fullName,
-            email: medecinDTO.email,
-            password: medecinDTO.password,
-            role: 'medecin'
-        });
-
-        const newMedecin = await Medecin.create({
-            specialite: medecinDTO.specialite,
-            UserId: newUser.id
-        });
-
-        return {
-            success: true,
-            message: 'Médecin registered successfully!',
-            medecin: newMedecin};
-
-    } catch (err) {
-        console.error('Error in register middleware:', err);
-        return { success: false, message: err};
+async function createMedecin(medecinDTO) {
+  try {
+    const existingUser = await User.findOne({ where: { email: medecinDTO.email } });
+    if (existingUser) {
+      return { success: false, message: 'Email déjà utilisé.' };
     }
+
+    const newUser = await User.create({
+      fullName: medecinDTO.fullName,
+      email: medecinDTO.email,
+      password: medecinDTO.password,
+      telephone: medecinDTO.telephone,
+      adress: medecinDTO.adress,
+      role: 'medecin',
+      isApproved: false 
+    });
+
+    const newMedecin = await Medecin.create({
+      specialite: medecinDTO.specialite,
+      numeroIdentification: medecinDTO.numeroIdentification,
+      UserId: newUser.id
+    });
+
+    return {
+      success: true,
+      message: 'Médecin enregistré avec succès.',
+      medecin: newMedecin
+    };
+
+  } catch (err) {
+    console.error('Erreur lors de l\'enregistrement du médecin :', err);
+    return { success: false, message: 'Erreur serveur.' };
+  }
 }
 
 async function getMedecinProfile(medecinId) {
   try {
     const medecin = await Medecin.findByPk(medecinId, {
-      attributes: ['id', 'specialite', 'UserId']
+      attributes: ['id', 'specialite', 'numeroIdentification', 'UserId']
     });
 
     if (!medecin) {
@@ -51,6 +55,7 @@ async function getMedecinProfile(medecinId) {
       data: {
         id: medecin.id,
         specialite: medecin.specialite,
+        numeroIdentification: medecin.numeroIdentification,
         UserId: medecin.UserId,
         fullName: user?.fullName,
         email: user?.email
@@ -73,8 +78,12 @@ async function updateMedecinProfile(medecinId, updatedData){
     }
 
     if (updatedData.specialite) medecin.specialite = updatedData.specialite;
+    if (updatedData.numeroIdentification) medecin.numeroIdentification = updatedData.numeroIdentification;
+
     if (updatedData.fullName) medecin.User.fullName = updatedData.fullName;
     if (updatedData.email) medecin.User.email = updatedData.email;
+     if (updatedData.telephone) medecin.User.telephone = updatedData.telephone;
+    if (updatedData.adress) medecin.User.adress = updatedData.adress;
 
     await medecin.save();
     await medecin.User.save();
