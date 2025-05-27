@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
 
     JournalSante.belongsTo(db.Prescription, {   
       foreignKey: 'PrescriptionId',
-      onDelete: 'CASCADE'
+      onDelete: 'SET NULL'
     });
 
     JournalSante.hasMany(db.SuiviMedicament, {
