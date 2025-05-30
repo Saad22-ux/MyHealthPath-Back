@@ -1,4 +1,6 @@
 const { User } = require('../models');
+const { Op } = require('sequelize');
+
 
 async function createAdminUser(userData) {
   try {
@@ -16,6 +18,49 @@ async function createAdminUser(userData) {
   }
 }
 
+async function getAllUsers() {
+  try {
+    const users = await User.findAll({
+      where: {
+        role: {
+          [Op.not]: 'admin'
+        }
+      },
+      attributes: { exclude: ['password'] }
+    });
+
+    return { success: true, users };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des utilisateurs :", error);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
+async function desactiverCompteUtilisateur(userId) {
+  try {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return { success: false, message: "Utilisateur non trouvé" };
+    }
+
+    if (user.role === 'admin') {
+      return { success: false, message: "Impossible de désactiver un compte admin" };
+    }
+
+    user.isApproved = false;
+    await user.save();
+
+    return { success: true, message: "Compte utilisateur désactivé avec succès" };
+
+  } catch (error) {
+    console.error("Erreur lors de la désactivation du compte :", error);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
 module.exports = {
   createAdminUser,
+  getAllUsers,
+  desactiverCompteUtilisateur
 };

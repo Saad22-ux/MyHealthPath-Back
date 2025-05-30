@@ -77,6 +77,8 @@ async function updateMedecinProfile(medecinId, updatedData){
       return { success: false, message: "Médecin non trouvé" };
     }
 
+    const user = await User.findByPk(medecin.UserId);
+
     if (updatedData.specialite) medecin.specialite = updatedData.specialite;
     if (updatedData.numeroIdentification) medecin.numeroIdentification = updatedData.numeroIdentification;
 
@@ -85,10 +87,19 @@ async function updateMedecinProfile(medecinId, updatedData){
      if (updatedData.telephone) medecin.User.telephone = updatedData.telephone;
     if (updatedData.adress) medecin.User.adress = updatedData.adress;
 
-    await medecin.save();
-    await medecin.User.save();
+    const updatedMedecin = await medecin.update(patientFields);
+
+    let updatedUser = null;
+    if (user) {
+      updatedUser = await user.update(userFields);
+    }
     
-    return { success: true, message: "Profil mis à jour avec succès" };
+    return {
+      success: true,
+      message: 'Profil du patient mis à jour avec succès',
+      medecin: updatedMedecin,
+      user: updatedUser,
+    };
 
 }catch (error) {
     console.error("Erreur lors de la mise à jour du profil du médecin :", error);

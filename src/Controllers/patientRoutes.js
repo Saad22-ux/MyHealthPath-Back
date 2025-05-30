@@ -151,4 +151,28 @@ router.get('/profilePatient', async (req, res) => {
   }
 });
 
+router.put('profilePatient/update', async (req,res)=>{
+  if (!req.session || !req.session.user) {
+      return res.status(401).json({ message: 'Utilisateur non authentifié.' });
+    }
+  
+    const userId = req.session.user.id;
+    
+    const patient = await Patient.findOne({ where: { UserId: userId } });
+  
+    if (!patient) {
+      return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+    }
+    const patientId = patient.id;
+    const updatedData = req.body;
+
+    const result = await updatePatientProfile(patientId, updatedData);
+
+    if (result.success) {
+    res.status(200).json(result);
+  } else {
+    res.status(400).json(result);
+  }
+});
+
 module.exports = router;

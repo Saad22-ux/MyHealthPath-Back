@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Medecin } = require('../models');
-const { getMedecinProfile } = require('../Service/medecinService');
+const { getMedecinProfile, updateMedecinProfile } = require('../Service/medecinService');
 
 router.get('/profileMedecin', async (req, res) => {
     if (!req.session || !req.session.user) {
@@ -23,6 +23,30 @@ router.get('/profileMedecin', async (req, res) => {
     res.status(200).json(result.data);
   } else {
     res.status(404).json({ message: result.message });
+  }
+});
+
+router.put('/profileMedecin/update', async (req,res)=>{
+  if (!req.session || !req.session.user) {
+      return res.status(401).json({ message: 'Utilisateur non authentifié.' });
+    }
+  
+    const userId = req.session.user.id;
+    
+    const medecin = await Medecin.findOne({ where: { UserId: userId } });
+  
+    if (!medecin) {
+      return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+    }
+    const medecinId = medecin.id;
+    const updatedData = req.body;
+
+    const result = await updateMedecinProfile(medecinId, updatedData);
+
+    if (result.success) {
+    res.status(200).json(result);
+  } else {
+    res.status(400).json(result);
   }
 });
 
