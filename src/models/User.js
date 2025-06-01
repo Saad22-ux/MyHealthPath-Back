@@ -14,7 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     cin: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
+      validate: {
+        notEmpty: true
+      }
     },
     fullName: {
       type: DataTypes.STRING,
