@@ -1,8 +1,30 @@
-const { JournalSante, SuiviMedicament, SuiviIndicateur, Indicateur, Patient } = require('../models');
+const { JournalSante, Prescription, SuiviMedicament, SuiviIndicateur, Indicateur, Patient, Patient_Medecin_Link } = require('../models');
+
+async function updatePatientStateForDoctor(patientId, medecinId, etatGlobal) {
+  try {
+    await Patient_Medecin_Link.update(
+      { state: etatGlobal },
+      {
+        where: {
+          id_patient: patientId,
+          id_medecin: medecinId,
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Erreur mise à jour état patient_medecin_link:', error);
+  }
+}
 
 async function createJournalSante(patientId, data) {
   try {
     const { date, medicaments, indicateurs, prescriptionId } = data;
+
+    const prescription = await Prescription.findByPk(prescriptionId);
+    if (!prescription) {
+      return { success: false, message: "Prescription introuvable." };
+    }
+    const medecinId = prescription.MedecinId;
 
     const aMedicaments = Array.isArray(medicaments) && medicaments.length > 0;
     const aIndicateurs = Array.isArray(indicateurs) && indicateurs.length > 0;
@@ -81,11 +103,7 @@ async function createJournalSante(patientId, data) {
       }
 
       if (etatGlobal !== 'Good') {
-        const patient = await Patient.findByPk(patientId);
-        if (patient) {
-          patient.state = etatGlobal;
-          await patient.save();
-        }
+        await updatePatientStateForDoctor(patientId, medecinId, etatGlobal);
       }
     }
 
