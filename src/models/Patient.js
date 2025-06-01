@@ -13,10 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    age: {
-      type: DataTypes.BIGINT,
-      allowNull: false,
-    },
     taille: {
       type: DataTypes.BIGINT,
       allowNull: false,

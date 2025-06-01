@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     }, {
       tableName: 'SuiviIndicateur',
-      timestamps: false
+      timestamps: true
     });
   
     SuiviIndicateur.associate = (db) => {

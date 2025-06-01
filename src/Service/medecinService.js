@@ -61,7 +61,7 @@ async function getMedecinProfile(medecinId) {
     }
 
     const user = await User.findByPk(medecin.UserId, {
-      attributes: ['id', 'fullName', 'email', 'photo', 'cin']
+      attributes: ['id', 'fullName', 'email', 'adress', 'telephone', 'photo', 'cin']
     });
 
     return {
@@ -72,6 +72,8 @@ async function getMedecinProfile(medecinId) {
         numeroIdentification: medecin.numeroIdentification,
         UserId: medecin.UserId,
         fullName: user?.fullName,
+        adress: user?.adress,
+        telephone: user?.telephone,
         email: user?.email,
         photo: user?.photo,
         cin: user?.cin

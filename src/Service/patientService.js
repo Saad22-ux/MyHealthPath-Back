@@ -65,7 +65,6 @@ async function createPatient(patientDTO, medecinId) {
       date_naissance: patientDTO.date_naissance,
       genre: patientDTO.genre,
       UserId: newUser.id,
-      age: patientDTO.age,
       taille: patientDTO.taille,
       poids: patientDTO.poids
     });
@@ -98,7 +97,7 @@ async function getPatients(medecinId){
           model: Medecin,
           where: { id: medecinId }, 
           through: {
-            attributes: ['isSubscribed'], 
+            attributes: ['isSubscribed', 'state'], 
           },
         },
         {
@@ -296,7 +295,6 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     if ('genre' in updatedFields) patientFields.genre = updatedFields.genre;
     if ('date_naissance' in updatedFields) patientFields.date_naissance = updatedFields.date_naissance;
-    if ('age' in updatedFields) patientFields.age = updatedFields.age;
     if ('taille' in updatedFields) patientFields.taille = updatedFields.taille;
     if ('poids' in updatedFields) patientFields.poids = updatedFields.poids;
     if ('photo' in updatedFields) patientFields.photo = updatedFields.photo;
@@ -329,7 +327,7 @@ async function updatePatientProfile(patientId, updatedFields) {
 async function getPatientProfile(patientId) {
   try {
     const patient = await Patient.findByPk(patientId, {
-      attributes: ['id', 'genre', 'date_naissance', 'age', 'taille', 'poids', 'photo', 'UserId']
+      attributes: ['id', 'genre', 'date_naissance', 'taille', 'poids', 'UserId']
     });
 
     if (!patient) {
@@ -337,7 +335,7 @@ async function getPatientProfile(patientId) {
     }
 
     const user = await User.findByPk(patient.UserId, {
-      attributes: ['id', 'fullName', 'email', 'telephone', 'adress', 'cin']
+      attributes: ['id', 'fullName', 'email', 'telephone', 'adress', 'photo', 'cin']
     });
 
     return {
@@ -346,7 +344,6 @@ async function getPatientProfile(patientId) {
         id: patient.id,
         genre: patient.genre,
         date_naissance: patient.date_naissance,
-        age: patient.age,
         taille: patient.taille,
         poids: patient.poids,
         photo: patient.photo,

@@ -13,6 +13,7 @@ const journalSanteRoutes = require('./Controllers/journalSanteRoutes');
 const medecinRoutes = require('./Controllers/medecinRoutes');
 const sequelize = require('./config/database');
 const cors = require('cors');
+require('./cron');
 
 
 const app = express();

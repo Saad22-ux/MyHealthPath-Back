@@ -9,7 +9,7 @@ const { createPatient,
         updatePatientProfile,
         getPatientProfile
          } = require('../Service/patientService');
-const { Medecin, Patient, Prescription } = require('../models');
+const { Medecin, Patient, Prescription, Notification } = require('../models');
 
 router.post('/create-patient', async (req, res) => {
   const userId = req.session.user.id; 
@@ -172,6 +172,32 @@ router.put('/profilePatient/update', async (req,res)=>{
   } else {
     res.status(400).json(result);
   }
+});
+
+router.get('/notifications', async (req, res) => {
+  const userId = req.session.user.id;
+  const patient = await Patient.findOne({ where: { UserId: userId } });
+
+  if (!patient) return res.status(404).json({ message: "Patient introuvable." });
+
+  const notifications = await Notification.findAll({
+    where: { PatientId: patient.id },
+    order: [['createdAt', 'DESC']],
+  });
+
+  res.json(notifications);
+});
+
+router.put('/notifications/:id/lue', async (req, res) => {
+  const { id } = req.params;
+  const notification = await Notification.findByPk(id);
+
+  if (!notification) return res.status(404).json({ message: "Notification introuvable." });
+
+  notification.isRead = true;
+  await notification.save();
+
+  res.json({ message: "Notification marquée comme lue." });
 });
 
 module.exports = router;

@@ -71,6 +71,12 @@ async function updatePrescription(prescriptionId, updatedData) {
         prescription.description = updatedData.description;
         await prescription.save();
       }
+
+      if (updatedData.date) {
+        prescription.date = updatedData.date;
+      }
+
+      await prescription.save();
   
       if (Array.isArray(updatedData.medicaments)) {
         await Medicament.destroy({ where: { PrescriptionId: prescriptionId } });
