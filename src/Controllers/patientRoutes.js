@@ -59,7 +59,7 @@ router.post('/get-patients/:id/suspendre',async (req,res)=>{
   const medecin = await Medecin.findOne({ where: { UserId: userId } });
 
   if (!medecin) {
-    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur.", data: result.data });
+    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
   }
 
   const medecinId = medecin.id;
@@ -93,7 +93,6 @@ router.post('/get-patients/:id/activate',async (req,res)=>{
     res.status(400).json({ message: result.message });
   }
 });
-
 
 router.get('/get-patients/:id', async (req, res) => {
   const patientId = req.params.id;
@@ -151,7 +150,7 @@ router.get('/profilePatient', async (req, res) => {
   }
 });
 
-router.put('profilePatient/update', async (req,res)=>{
+router.put('/profilePatient/update', async (req,res)=>{
   if (!req.session || !req.session.user) {
       return res.status(401).json({ message: 'Utilisateur non authentifié.' });
     }

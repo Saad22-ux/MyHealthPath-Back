@@ -12,6 +12,18 @@ module.exports = (sequelize, DataTypes) => {
     date_naissance: {
       type: DataTypes.DATEONLY,
       allowNull: false,
+    },
+    age: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    taille: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+    },
+    poids: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
     }
   }, {
     tableName: 'Patient',

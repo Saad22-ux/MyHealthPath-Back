@@ -64,6 +64,9 @@ async function createPatient(patientDTO, medecinId) {
       date_naissance: patientDTO.date_naissance,
       genre: patientDTO.genre,
       UserId: newUser.id,
+      age: patientDTO.age,
+      taille: patientDTO.taille,
+      poids: patientDTO.poids
     });
 
     await Patient_Medecin_Link.create({
@@ -292,6 +295,10 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     if ('genre' in updatedFields) patientFields.genre = updatedFields.genre;
     if ('date_naissance' in updatedFields) patientFields.date_naissance = updatedFields.date_naissance;
+    if ('age' in updatedFields) patientFields.age = updatedFields.age;
+    if ('taille' in updatedFields) patientFields.taille = updatedFields.taille;
+    if ('poids' in updatedFields) patientFields.poids = updatedFields.poids;
+    if ('photo' in updatedFields) patientFields.photo = updatedFields.photo;
 
     if ('fullName' in updatedFields) userFields.fullName = updatedFields.fullName;
     if ('email' in updatedFields) userFields.email = updatedFields.email;
@@ -320,7 +327,7 @@ async function updatePatientProfile(patientId, updatedFields) {
 async function getPatientProfile(patientId) {
   try {
     const patient = await Patient.findByPk(patientId, {
-      attributes: ['id', 'genre', 'date_naissance', 'UserId']
+      attributes: ['id', 'genre', 'date_naissance', 'age', 'taille', 'poids', 'photo', 'UserId']
     });
 
     if (!patient) {
@@ -337,6 +344,10 @@ async function getPatientProfile(patientId) {
         id: patient.id,
         genre: patient.genre,
         date_naissance: patient.date_naissance,
+        age: patient.age,
+        taille: patient.taille,
+        poids: patient.poids,
+        photo: patient.photo,
         UserId: patient.UserId,
         fullName: user?.fullName,
         email: user?.email,
@@ -360,6 +371,5 @@ module.exports = { createPatient,
                   getPatientDetails,
                   getPatientStatistics,
                   updatePatientProfile,
-                  //getPatientDashboard,
                   getPatientProfile
                 };

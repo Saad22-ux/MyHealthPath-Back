@@ -2,7 +2,7 @@ const validator = require('validator');
 const Medecin = require('../models/Medecin');
 
 module.exports = function validateAll(medecinDTO){
-    const {fullName,email,password,specialite, telephone, adress, numeroIdentification} = medecinDTO;
+    const {fullName,email,password,specialite, telephone, adress, numeroIdentification, cin } = medecinDTO;
     const errors = {};
 
     const cleanName = validator.blacklist(fullName,' -')
