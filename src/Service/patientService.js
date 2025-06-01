@@ -56,6 +56,7 @@ async function createPatient(patientDTO, medecinId) {
       password: generatedPassword,
       telephone: patientDTO.telephone,
       adress: patientDTO.adress,
+      cin: patientDTO.cin,
       role: 'patient',
       isApproved: true,
     });
@@ -302,6 +303,7 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     if ('fullName' in updatedFields) userFields.fullName = updatedFields.fullName;
     if ('email' in updatedFields) userFields.email = updatedFields.email;
+    if ('cin' in updatedFields) patientFields.cin = updatedFields.cin;
     if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
     if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
 
@@ -335,7 +337,7 @@ async function getPatientProfile(patientId) {
     }
 
     const user = await User.findByPk(patient.UserId, {
-      attributes: ['id', 'fullName', 'email', 'telephone', 'adress']
+      attributes: ['id', 'fullName', 'email', 'telephone', 'adress', 'cin']
     });
 
     return {
@@ -350,6 +352,7 @@ async function getPatientProfile(patientId) {
         photo: patient.photo,
         UserId: patient.UserId,
         fullName: user?.fullName,
+        cin: user?.cin,
         email: user?.email,
         telephone: user?.telephone,
         adress: user?.adress
