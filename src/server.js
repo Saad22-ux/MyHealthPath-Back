@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const path = require('path');
 const MySQLStore = require('express-mysql-session')(session);
 const authRoutes = require('./Controllers/authRoutes'); 
 const registerRoutes = require('./Controllers/registerRoutes');
@@ -55,7 +56,7 @@ app.use(indicateurRoutes);
 app.use(prescriptionRoutes);
 app.use(journalSanteRoutes);
 app.use(medecinRoutes);
-
+app.use('/uploads/photos', express.static('uploads/photos'));
 
 sequelize.authenticate()
   .then(() => {

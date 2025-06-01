@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Medecin } = require('../models');
+const upload = require('../middlewares/uploadPhoto');
 const { getMedecinProfile, updateMedecinProfile } = require('../Service/medecinService');
 
 router.get('/profileMedecin', async (req, res) => {
@@ -26,7 +27,7 @@ router.get('/profileMedecin', async (req, res) => {
   }
 });
 
-router.put('/profileMedecin/update', async (req,res)=>{
+router.put('/profileMedecin/update', upload.single('photo'), async (req,res)=>{
   if (!req.session || !req.session.user) {
       return res.status(401).json({ message: 'Utilisateur non authentifié.' });
     }
@@ -40,6 +41,10 @@ router.put('/profileMedecin/update', async (req,res)=>{
     }
     const medecinId = medecin.id;
     const updatedData = req.body;
+
+    if (req.file) {
+      updatedData.photo = `uploads/photos/${req.file.filename}`;
+    }
 
     const result = await updateMedecinProfile(medecinId, updatedData);
 

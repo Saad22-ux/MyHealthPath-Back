@@ -32,11 +32,15 @@ module.exports = (sequelize, DataTypes) => {
     });
     Prescription.hasMany(db.Medicament, {
       foreignKey: 'PrescriptionId',
-      as: 'medicaments'
+      as: 'medicaments',
+      onDelete: 'CASCADE',
+      hooks: true
     });
     Prescription.hasMany(db.Indicateur, {
       foreignKey: 'PrescriptionId',
-      as: 'indicateurs'
+      as: 'indicateurs',
+      onDelete: 'CASCADE',
+      hooks: true
     });
   };
 

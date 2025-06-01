@@ -41,11 +41,15 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     JournalSante.hasMany(db.SuiviMedicament, {
-      foreignKey: 'JournalSanteId'
+      foreignKey: 'JournalSanteId',
+      onDelete: 'CASCADE',
+      hooks: true
     });
 
     JournalSante.hasMany(db.SuiviIndicateur, {
-      foreignKey: 'JournalSanteId'
+      foreignKey: 'JournalSanteId',
+      onDelete: 'CASCADE',
+      hooks: true
     });
   };
 

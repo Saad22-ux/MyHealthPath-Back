@@ -12,12 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     date_naissance: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-    },
-    state: {
-      type: DataTypes.ENUM('Danger', 'Normal', 'Good'),
-      allowNull: false,
-      defaultValue: 'Normal',
-    },
+    }
   }, {
     tableName: 'Patient',
     timestamps: false,

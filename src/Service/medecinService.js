@@ -1,11 +1,23 @@
 const { Medecin, User} = require('../models');
 const bcrypt = require('bcrypt');
+const fs = require('fs');
 
-async function createMedecin(medecinDTO) {
+async function createMedecin(medecinDTO, photoFile) {
   try {
     const existingUser = await User.findOne({ where: { email: medecinDTO.email } });
     if (existingUser) {
       return { success: false, message: 'Email déjà utilisé.' };
+    }
+
+    let photoPath = null;
+    if (photoFile) {
+      const uploadDir = path.join(__dirname, '..', 'uploads', 'photos');
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+      const fileName = `${Date.now()}_${photoFile.originalname}`;
+      const finalPath = path.join(uploadDir, fileName);
+      fs.writeFileSync(finalPath, photoFile.buffer);
+      photoPath = `uploads/photos/${fileName}`;
     }
 
     const newUser = await User.create({
@@ -14,6 +26,8 @@ async function createMedecin(medecinDTO) {
       password: medecinDTO.password,
       telephone: medecinDTO.telephone,
       adress: medecinDTO.adress,
+      cin: medecinDTO.cin,
+      photo: photoPath ?? null,
       role: 'medecin',
       isApproved: false 
     });
@@ -47,7 +61,7 @@ async function getMedecinProfile(medecinId) {
     }
 
     const user = await User.findByPk(medecin.UserId, {
-      attributes: ['id', 'fullName', 'email']
+      attributes: ['id', 'fullName', 'email', 'photo', 'cin']
     });
 
     return {
@@ -58,7 +72,9 @@ async function getMedecinProfile(medecinId) {
         numeroIdentification: medecin.numeroIdentification,
         UserId: medecin.UserId,
         fullName: user?.fullName,
-        email: user?.email
+        email: user?.email,
+        photo: user?.photo,
+        cin: user?.cin
       }
     };
   } catch (error) {
@@ -67,32 +83,40 @@ async function getMedecinProfile(medecinId) {
   }
 }
 
-async function updateMedecinProfile(medecinId, updatedData){
+async function updateMedecinProfile(medecinId, updatedData, photoFile){
   try {
     const medecin = await Medecin.findByPk(medecinId, {
       include: [{ model: User }]
     });
 
-    if (!medecin) {
+    if (!medecin || !medecin.User) {
       return { success: false, message: "Médecin non trouvé" };
     }
 
-    const user = await User.findByPk(medecin.UserId);
+    if (photoFile) {
+      const uploadDir = path.join(__dirname, '..', 'uploads', 'photos');
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-    if (updatedData.specialite) medecin.specialite = updatedData.specialite;
-    if (updatedData.numeroIdentification) medecin.numeroIdentification = updatedData.numeroIdentification;
-
-    if (updatedData.fullName) medecin.User.fullName = updatedData.fullName;
-    if (updatedData.email) medecin.User.email = updatedData.email;
-     if (updatedData.telephone) medecin.User.telephone = updatedData.telephone;
-    if (updatedData.adress) medecin.User.adress = updatedData.adress;
-
-    const updatedMedecin = await medecin.update(patientFields);
-
-    let updatedUser = null;
-    if (user) {
-      updatedUser = await user.update(userFields);
+      const fileName = `${Date.now()}_${photoFile.originalname}`;
+      const finalPath = path.join(uploadDir, fileName);
+      fs.writeFileSync(finalPath, photoFile.buffer);
+      updatedData.photo = `uploads/photos/${fileName}`;
     }
+
+    const medecinFields = {};
+    if (updatedData.specialite) medecinFields.specialite = updatedData.specialite;
+    if (updatedData.numeroIdentification) medecinFields.numeroIdentification = updatedData.numeroIdentification;
+
+    const userFields = {};
+    if (updatedData.fullName) userFields.fullName = updatedData.fullName;
+    if (updatedData.email) userFields.email = updatedData.email;
+    if (updatedData.telephone) userFields.telephone = updatedData.telephone;
+    if (updatedData.adress) userFields.adress = updatedData.adress;
+    if (updatedData.photo) userFields.photo = updatedData.photo;
+    if (updatedData.cin) userFields.cin = updatedData.cin;
+
+    const updatedMedecin = await medecin.update(medecinFields);
+    const updatedUser = await medecin.User.update(userFields);
     
     return {
       success: true,

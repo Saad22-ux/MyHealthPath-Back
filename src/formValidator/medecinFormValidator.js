@@ -40,6 +40,10 @@ module.exports = function validateAll(medecinDTO){
         errors.numeroIdentification = 'numeroIdentification required!';
     }
 
+    if (validator.isEmpty(cin)) {
+        errors.cin = 'CIN requis.';
+    }
+
 
     return errors;
 }

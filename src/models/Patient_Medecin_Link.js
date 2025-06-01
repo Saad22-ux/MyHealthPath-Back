@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
+      state: {
+      type: DataTypes.ENUM('Danger', 'Normal', 'Good'),
+      allowNull: false,
+      defaultValue: 'Normal',
+    },
     }, {
       tableName: 'Patient_Medecin_Link',
       timestamps: false,
