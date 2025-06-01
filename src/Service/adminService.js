@@ -8,6 +8,7 @@ async function createAdminUser(userData) {
         fullName: userData.fullName,
         email: userData.email,
         password: userData.password,
+        cin: userData.cin,
         role: 'admin', 
         isApproved: true,
     });

@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     photo: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     cin: {
       type: DataTypes.STRING,
@@ -35,11 +35,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     telephone: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     adress: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     role: {
       type: DataTypes.ENUM('admin', 'medecin', 'patient'),
