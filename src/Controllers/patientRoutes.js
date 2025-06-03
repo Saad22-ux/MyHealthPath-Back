@@ -9,7 +9,8 @@ const { createPatient,
         updatePatientProfile,
         getPatientProfile,
         findPatientByCIN,
-        linkMedecinToPatient
+        linkMedecinToPatient,
+        updatePatientProfileParMedecin
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
 
@@ -128,7 +129,7 @@ router.put('/get-patients/:id/update', async (req, res) => {
   const { id } = req.params;
   const updatedFields = req.body;
 
-  const result = await updatePatientProfile(id, updatedFields);
+  const result = await updatePatientProfileParMedecin(id, updatedFields);
 
   if (result.success) {
     res.status(200).json(result);
@@ -156,7 +157,7 @@ router.get('/profilePatient', async (req, res) => {
   }
 });
 
-router.put('/profilePatient/update', async (req,res)=>{
+router.put('/profilePatient/update', upload.single('photo'), async (req,res)=>{
   if (!req.session || !req.session.user) {
       return res.status(401).json({ message: 'Utilisateur non authentifié.' });
     }
@@ -170,8 +171,9 @@ router.put('/profilePatient/update', async (req,res)=>{
     }
     const patientId = patient.id;
     const updatedData = req.body;
+    const photoFile = req.file;
 
-    const result = await updatePatientProfile(patientId, updatedData);
+    const result = await updatePatientProfile(patientId, updatedData, photoFile);
 
     if (result.success) {
     res.status(200).json(result);

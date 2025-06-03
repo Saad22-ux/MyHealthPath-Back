@@ -293,7 +293,7 @@ const getPatientStatistics = async (patientId, prescriptionId) => {
   }
 };
 
-async function updatePatientProfile(patientId, updatedFields) {
+async function updatePatientProfileParMedecin(patientId, updatedFields) {
   try {
     const patient = await Patient.findByPk(patientId);
 
@@ -317,6 +317,66 @@ async function updatePatientProfile(patientId, updatedFields) {
     if ('cin' in updatedFields) patientFields.cin = updatedFields.cin;
     if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
     if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
+    if ('password' in updatedFields && updatedFields.password.trim()) {
+      const hashedPassword = await bcrypt.hash(updatedFields.password, 10);
+      userFields.password = hashedPassword;
+    }
+
+    const updatedPatient = await patient.update(patientFields);
+
+    let updatedUser = null;
+    if (user) {
+      updatedUser = await user.update(userFields);
+    }
+
+    return {
+      success: true,
+      message: 'Patient profile updated successfully',
+      patient: updatedPatient,
+      user: updatedUser,
+    };
+  } catch (error) {
+    console.error('Error updating patient profile :', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+async function updatePatientProfile(patientId, updatedFields, photoFile) {
+  try {
+    const patient = await Patient.findByPk(patientId);
+
+    if (!patient) {
+      return { success: false, message: 'Patient not found' };
+    }
+
+    const user = await User.findByPk(patient.UserId);
+    if (!user) return { success: false, message: 'User not found' };
+
+    if (photoFile) {
+      const uploadDir = path.join(__dirname, '..', 'uploads', 'photos');
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+      const fileName = `${Date.now()}_${photoFile.originalname}`;
+      const finalPath = path.join(uploadDir, fileName);
+      fs.writeFileSync(finalPath, photoFile.buffer);
+
+      updatedFields.photo = `uploads/photos/${fileName}`;
+    }
+
+    const patientFields = {};
+    const userFields = {};
+
+    if ('genre' in updatedFields) patientFields.genre = updatedFields.genre;
+    if ('date_naissance' in updatedFields) patientFields.date_naissance = updatedFields.date_naissance;
+    if ('taille' in updatedFields) patientFields.taille = updatedFields.taille;
+    if ('poids' in updatedFields) patientFields.poids = updatedFields.poids;
+
+    if ('fullName' in updatedFields) userFields.fullName = updatedFields.fullName;
+    if ('email' in updatedFields) userFields.email = updatedFields.email;
+    if ('cin' in updatedFields) patientFields.cin = updatedFields.cin;
+    if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
+    if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
+    if ('photo' in updatedFields) patientFields.photo = updatedFields.photo;
     if ('password' in updatedFields && updatedFields.password.trim()) {
       const hashedPassword = await bcrypt.hash(updatedFields.password, 10);
       userFields.password = hashedPassword;
@@ -476,6 +536,7 @@ module.exports = { createPatient,
                   activerPatient,
                   getPatientDetails,
                   getPatientStatistics,
+                  updatePatientProfileParMedecin,
                   updatePatientProfile,
                   getPatientProfile,
                   findPatientByCIN,
