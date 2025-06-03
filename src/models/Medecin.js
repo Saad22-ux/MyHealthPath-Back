@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
     },
     specialite: {
-      type: DataTypes.ENUM('Diabète', 'Hypertension', 'Cholesterol'),
+      type: DataTypes.ENUM('endocrinologie-diabétologie-nutrition', 'cardiologie', 'lipidologie'),
       allowNull: false,
     },
     numeroIdentification: {

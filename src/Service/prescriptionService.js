@@ -140,7 +140,7 @@ async function getIndicateursParSpecialite(req, res) {
     }
 
     const indicateursParSpecialite = {
-      'Diabète': [
+      'endocrinologie-diabétologie-nutrition': [
         'Glycémie à jeun',
         'Glycémie postprandiale',
         'HbA1c',
@@ -154,7 +154,7 @@ async function getIndicateursParSpecialite(req, res) {
         'Albuminurie',
         'Créatinine'
       ],
-      'Hypertension': [
+      'cardiologie': [
         'Tension artérielle',
         'Fréquence cardiaque',
         'Poids',
@@ -166,7 +166,7 @@ async function getIndicateursParSpecialite(req, res) {
         'Créatinine',
         'Électrolytes (Na, K)'
       ],
-      'Cholesterol': [
+      'lipidologie': [
         'Cholestérol total',
         'LDL',
         'HDL',
