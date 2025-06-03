@@ -13,6 +13,7 @@ const { createPatient,
         updatePatientProfileParMedecin
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
+const upload = require('../middlewares/uploadPhoto');
 
 router.post('/create-patient', async (req, res) => {
   const userId = req.session.user.id;

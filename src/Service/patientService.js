@@ -4,6 +4,7 @@ const validatePatient = require('../formValidator/patientFormValidator');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { userInfo } = require('os');
+const fs = require('fs');
 
 async function createPatient(patientDTO, medecinId) {
   try {
