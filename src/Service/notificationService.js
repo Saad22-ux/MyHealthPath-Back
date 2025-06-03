@@ -1,4 +1,4 @@
-const { JournalSante, Notification, Patient } = require('../models');
+const { JournalSante, Notification, Patient, Patient_Medecin_Link, Medecin } = require('../models');
 const { Op } = require('sequelize');
 
 async function checkIfPatientSubmittedIndicatorsToday(patientId) {
@@ -48,6 +48,41 @@ async function genererRappelsAutomatiques() {
   }
 }
 
-module.exports = { envoyerNotification, genererRappelsAutomatiques };
+async function genererAlertesPourMedecins() {
+  try {
+  const liens = await Patient_Medecin_Link.findAll({
+    where: { state: 'Danger' },
+    include: [Patient, Medecin],
+  });
+
+  for (const lien of liens) {
+    const existe = await Notification.findOne({
+      where: {
+        PatientId: lien.PatientIdt,
+        MedecinId: lien.MedecinId,
+        type: 'alerte',
+        isRead: false,
+      },
+    });
+
+    if (!existe) {
+      await Notification.create({
+        message: `Alerte : Le patient ID ${lien.PatientId} est en état de danger.`,
+        type: 'alerte',
+        PatientId: lien.PatientId,
+        MedecinId: lien.MedecinId,
+        isRead: false,
+      });
+    }
+  }
+
+  return { success: true, message: 'Alertes générées.' };
+  } catch (error) {
+    console.error('Erreur génération alertes danger :', error);
+    return { success: false, message: 'Erreur lors de la génération des alertes.' };
+  }
+}
+
+module.exports = { envoyerNotification, genererRappelsAutomatiques, genererAlertesPourMedecins };
 
 
