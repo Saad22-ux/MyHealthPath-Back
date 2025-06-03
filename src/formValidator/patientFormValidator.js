@@ -13,18 +13,7 @@ module.exports = function validatePatient(patientDTO) {
     errors.email = 'Invalid email format!';
   }
 
-  if(validator.isEmpty(telephone)){
-      errors.telephone = 'Telephone required!';
-  }else if (!validator.isNumeric(telephone)) {
-      errors.telephone = 'Le téléphone doit contenir uniquement des chiffres !';
-  }else if (!validator.isLength(telephone, { min: 10, max: 15 })) {
-      errors.telephone = 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.';
-  }
-
-  if (validator.isEmpty(cin)) {
-          errors.cin = 'CIN requis.';
-  }
-
+  
   if (!validator.isDate(date_naissance)) {
     errors.date_naissance = 'Invalid birthdate!';
   } else if (new Date(date_naissance) >= new Date()) {
