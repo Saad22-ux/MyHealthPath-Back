@@ -6,7 +6,7 @@ async function ajouterIndicateur(indicateurDTO, patientId, prescriptionId){
         const prescription = await Prescription.findByPk(prescriptionId);
 
         if (!patient || !prescription || prescription.PatientId !== patientId) {
-            return { success: false, message: 'Patient or Prescription not found or mismatch' };
+            return { success: false, message: 'Patient or Perscription not found or mismatch' };
         }
 
         const today = new Date().toISOString().slice(0, 10);
@@ -21,7 +21,7 @@ async function ajouterIndicateur(indicateurDTO, patientId, prescriptionId){
         });
 
         if (existing) {
-            return { success: false, message: 'Mesure déjà soumise aujourd’hui pour cet indicateur' };
+            return { success: false, message: 'Mesure already submitted today' };
         }
 
         const indicateur = await Indicateur.create({

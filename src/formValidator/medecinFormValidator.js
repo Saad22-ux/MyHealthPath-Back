@@ -30,6 +30,10 @@ module.exports = function validateAll(medecinDTO){
 
     if(validator.isEmpty(telephone)){
         errors.telephone = 'Telephone required!';
+    }else if (!validator.isNumeric(telephone)) {
+        errors.telephone = 'Le téléphone doit contenir uniquement des chiffres !';
+    }else if (!validator.isLength(telephone, { min: 10, max: 15 })) {
+        errors.telephone = 'Le numéro de téléphone doit contenir entre 10 et 15 chiffres.';
     }
 
     if(validator.isEmpty(adress)){

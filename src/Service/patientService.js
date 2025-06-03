@@ -23,7 +23,7 @@ async function createPatient(patientDTO, medecinId) {
       if (!existingPatient) {
         return {
           success: false,
-          message: "Cet utilisateur existe mais n'est pas enregistré en tant que patient.",
+          message: "This user exists but is not registered as a patient.",
         };
       }
 
@@ -37,7 +37,7 @@ async function createPatient(patientDTO, medecinId) {
       if (link) {
         return {
           success: true,
-          message: 'Ce patient est déjà lié à vous.',
+          message: 'This patient is already linked to you.',
           patient: { id: existingUser.id, email: existingUser.email },
         };
       }
@@ -50,14 +50,14 @@ async function createPatient(patientDTO, medecinId) {
 
       return {
         success: true,
-        message: 'Patient existant trouvé. Lien créé avec le médecin.',
+        message: 'Existing patient found. Link created with the doctor.',
         patient: { id: existingUser.id, email: existingUser.email },
       };
     }
 
     const errors = validatePatient(patientDTO);
     if (Object.keys(errors).length > 0) {
-      return { success: false, message: 'Validation échouée.', errors };
+      return { success: false, message: 'Validation failed.', errors };
     }
 
     const generatedPassword = crypto.randomBytes(6).toString('hex');
@@ -91,16 +91,15 @@ async function createPatient(patientDTO, medecinId) {
 
     return {
       success: true,
-      message: 'Nouveau patient créé et lié au médecin.',
+      message: 'New patient created and linked to the doctor.',
       patient: { id: newUser.id, email: newUser.email },
     };
 
   } catch (err) {
-    console.error('Erreur lors de la création du patient :', err);
-    return { success: false, message: 'Erreur serveur.' };
+    console.error('Error while creating patient:', err);
+    return { success: false, message: 'Server error' };
   }
 }
-
 
 async function getPatients(medecinId){
   try {
@@ -243,7 +242,7 @@ const getPatientStatistics = async (patientId, prescriptionId) => {
       ]
     });
 
-    const fullName = patient?.User?.fullName || 'Inconnu';
+    const fullName = patient?.User?.fullName || 'Unknown';
 
     const suiviMedicamentStats = await SuiviMedicament.findAll({
       where: { '$JournalSante.PatientId$': patientId },
@@ -289,8 +288,8 @@ const getPatientStatistics = async (patientId, prescriptionId) => {
       }
     };
   } catch (error) {
-    console.error('Erreur dans la récupération des statistiques :', error);
-    throw new Error('Erreur lors de la récupération des statistiques.');
+    console.error('Error retrieving statistics:', error);
+    throw new Error('Error retrieving statistics.');
   }
 };
 
@@ -299,7 +298,7 @@ async function updatePatientProfile(patientId, updatedFields) {
     const patient = await Patient.findByPk(patientId);
 
     if (!patient) {
-      return { success: false, message: 'Patient non trouvé' };
+      return { success: false, message: 'Patient not found' };
     }
 
     const user = await User.findByPk(patient.UserId);
@@ -332,13 +331,13 @@ async function updatePatientProfile(patientId, updatedFields) {
 
     return {
       success: true,
-      message: 'Profil du patient mis à jour avec succès',
+      message: 'Patient profile updated successfully',
       patient: updatedPatient,
       user: updatedUser,
     };
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du profil du patient :', error);
-    return { success: false, message: 'Erreur serveur' };
+    console.error('Error updating patient profile :', error);
+    return { success: false, message: 'Server error' };
   }
 }
 
@@ -349,7 +348,7 @@ async function getPatientProfile(patientId) {
     });
 
     if (!patient) {
-      return { success: false, message: 'Patient introuvable.' };
+      return { success: false, message: 'Patient not found' };
     }
 
     const user = await User.findByPk(patient.UserId, {
@@ -374,8 +373,8 @@ async function getPatientProfile(patientId) {
       }
     };
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil patient :', error);
-    return { success: false, message: 'Erreur serveur.' };
+    console.error('Error fetching patient profile:', error);
+    return { success: false, message: 'Server error' };
   }
 }
 

@@ -5,13 +5,13 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
     const { description, medicaments, indicateurs } = prescriptionDTO;
 
     if (!Array.isArray(medicaments) && !Array.isArray(indicateurs)) {
-      return { success: false, message: 'Données invalides.' };
+      return { success: false, message: 'Invalid data format.' };
     }
 
     if ((medicaments.length === 0) && (indicateurs.length === 0)) {
       return {
         success: false,
-        message: 'La prescription doit contenir au moins un médicament ou un indicateur.'
+        message: 'A prescription must contain at least one medication or indicator.'
       };
     }
 
@@ -19,7 +19,7 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
     if (!patient) return { success: false, message: 'Patient not found' };
 
     const medecin = await Medecin.findByPk(medecinId);
-    if (!medecin) return { success: false, message: 'Medecin not found' };
+    if (!medecin) return { success: false, message: 'Doctor not found' };
 
     const prescription = await Prescription.create({
       description,
@@ -51,7 +51,7 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
 
     return {
       success: true,
-      message: 'Prescription created successfully with medicaments and indicators',
+      message: 'Prescription created successfully with medications and indicators',
       prescriptionId: prescription.id
     };
 
@@ -64,7 +64,7 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
 async function updatePrescription(prescriptionId, updatedData) {
     try {
       const prescription = await Prescription.findByPk(prescriptionId);
-      if (!prescription) return { success: false, message: 'Prescription not found' };
+      if (!prescription) return { success: false, message: 'Perscription not found' };
   
       
       if (updatedData.description) {
@@ -100,10 +100,10 @@ async function updatePrescription(prescriptionId, updatedData) {
       await Indicateur.bulkCreate(newIndicateurs);
     }
   
-      return { success: true, message: 'Prescription updated successfully', data: prescription };
+      return { success: true, message: 'Perscription updated successfully', data: prescription };
   
     } catch (err) {
-      console.error('Error updating prescription:', err);
+      console.error('Error updating perscription:', err);
       return { success: false, message: 'Server error' };
     }
 }
@@ -124,7 +124,7 @@ async function getPrescriptionDetails(prescriptionId) {
       };
   
     } catch (error) {
-      console.error('Error fetching prescription:', error);
+      console.error('Error fetching perscription:', error);
       return { success: false, message: 'Server error' };
     }
 }
@@ -136,7 +136,7 @@ async function getIndicateursParSpecialite(req, res) {
     const medecin = await Medecin.findOne({ where: { UserId: userId } });
 
     if (!medecin) {
-      return res.status(404).json({ error: 'Médecin non trouvé' });
+      return res.status(404).json({ error: 'Doctor not found.' });
     }
 
     const indicateursParSpecialite = {
@@ -183,8 +183,8 @@ async function getIndicateursParSpecialite(req, res) {
 
     res.status(200).json({ indicateurs });
   } catch (error) {
-    console.error('Erreur lors de la récupération des indicateurs :', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('Error fetching indicators by specialty:', error);
+    res.status(500).json({ error: 'Server error while fetching indicators.' });
   }
 }
 
@@ -193,16 +193,16 @@ async function desactiverPrescription(prescriptionId) {
     const prescription = await Prescription.findByPk(prescriptionId);
 
     if (!prescription) {
-      return { success: false, message: 'Prescription non trouvée' };
+      return { success: false, message: 'Prescription not found.' };
     }
 
     prescription.isActive = false;
     await prescription.save();
 
-    return { success: true, message: 'Statut de la prescription mis à jour avec succès', data: prescription };
+    return { success: true, message: 'Prescription status successfully updated to inactive.', data: prescription };
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du statut de la prescription :', error);
-    return { success: false, message: 'Erreur serveur' };
+    console.error('Error deactivating prescription:', error);
+    return { success: false, message: 'Server error while deactivating prescription.' };
   }
 }
 
@@ -211,16 +211,16 @@ async function activerPrescription(prescriptionId) {
     const prescription = await Prescription.findByPk(prescriptionId);
 
     if (!prescription) {
-      return { success: false, message: 'Prescription non trouvée' };
+      return { success: false, message: 'Prescription not found.' };
     }
 
     prescription.isActive = true;
     await prescription.save();
 
-    return { success: true, message: 'Statut de la prescription mis à jour avec succès', data: prescription };
+    return { success: true, message: 'Prescription status successfully updated to active.', data: prescription };
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du statut de la prescription :', error);
-    return { success: false, message: 'Erreur serveur' };
+    console.error('Error activating prescription:', error);
+    return { success: false, message: 'Server error while activating prescription.' };
   }
 }
   

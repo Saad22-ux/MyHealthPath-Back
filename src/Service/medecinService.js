@@ -6,7 +6,7 @@ async function createMedecin(medecinDTO, photoFile) {
   try {
     const existingUser = await User.findOne({ where: { email: medecinDTO.email } });
     if (existingUser) {
-      return { success: false, message: 'Email déjà utilisé.' };
+      return { success: false, message: 'Email already in use.' };
     }
 
     let photoPath = null;
@@ -40,13 +40,13 @@ async function createMedecin(medecinDTO, photoFile) {
 
     return {
       success: true,
-      message: 'Médecin enregistré avec succès.',
+      message: 'Doctor successfully registered.',
       medecin: newMedecin
     };
 
   } catch (err) {
-    console.error('Erreur lors de l\'enregistrement du médecin :', err);
-    return { success: false, message: 'Erreur serveur.' };
+    console.error('Error while registering doctor:', err);
+    return { success: false, message: 'Server error.' };
   }
 }
 
@@ -57,7 +57,7 @@ async function getMedecinProfile(medecinId) {
     });
 
     if (!medecin) {
-      return { success: false, message: 'Médecin introuvable.' };
+      return { success: false, message: 'Doctor not found.' };
     }
 
     const user = await User.findByPk(medecin.UserId, {
@@ -80,8 +80,8 @@ async function getMedecinProfile(medecinId) {
       }
     };
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil médecin :', error);
-    return { success: false, message: 'Erreur serveur.' };
+    console.error('Error while retrieving doctor profile:', error);
+    return { success: false, message: 'Server error.' };
   }
 }
 
@@ -92,7 +92,7 @@ async function updateMedecinProfile(medecinId, updatedData, photoFile){
     });
 
     if (!medecin || !medecin.User) {
-      return { success: false, message: "Médecin non trouvé" };
+      return { success: false, message: "Doctor not found." };
     }
 
     if (photoFile) {
@@ -126,13 +126,13 @@ async function updateMedecinProfile(medecinId, updatedData, photoFile){
     
     return {
       success: true,
-      message: 'Profil du patient mis à jour avec succès',
+      message: 'Doctor profile updated successfully.',
       medecin: updatedMedecin,
       user: updatedUser,
     };
 
 }catch (error) {
-    console.error("Erreur lors de la mise à jour du profil du médecin :", error);
+    console.error("Error while updating doctor profile:", error);
     return { success: false, message: "Erreur serveur" };
   }
 }

@@ -22,7 +22,7 @@ async function createJournalSante(patientId, data) {
 
     const prescription = await Prescription.findByPk(prescriptionId);
     if (!prescription) {
-      return { success: false, message: "Prescription introuvable." };
+      return { success: false, message: "Prescription not found." };
     }
     const medecinId = prescription.MedecinId;
 
@@ -110,13 +110,13 @@ async function createJournalSante(patientId, data) {
     return {
       success: true,
       message: pris
-        ? 'Journal de santé enregistré avec succès.'
-        : 'Journal partiel : indicateurs ou médicaments manquants, rien enregistré.'
+        ? 'Health journal successfully recorded.'
+        : 'Partial journal: missing indicators or medications, nothing recorded.'
     };
 
   } catch (error) {
-    console.error('Erreur lors de la création du journal de santé :', error);
-    return { success: false, message: 'Erreur serveur.' };
+    console.error('Error creating health journal:', error);
+    return { success: false, message: 'Server error.' };
   }
 }
 
@@ -134,7 +134,7 @@ async function upsertJournalSante(patientId, data) {
      const { medicaments, indicateurs, prescriptionId } = data;
     const prescription = await Prescription.findByPk(prescriptionId);
     if (!prescription) {
-      return { success: false, message: "Prescription introuvable." };
+      return { success: false, message: "Prescription not found." };
     }
     const medecinId = prescription.MedecinId;
 
@@ -216,13 +216,13 @@ async function upsertJournalSante(patientId, data) {
         }
       }
 
-      return { success: true, message: 'Journal mis à jour.', journal };
+      return { success: true, message: 'Health journal updated.', journal };
     } else {
       return await createJournalSante(patientId, data);
     }
   } catch (error) {
-    console.error('Erreur dans upsertJournalSante:', error);
-    return { success: false, message: 'Erreur serveur.' };
+    console.error('Error in upsertJournalSante:', error);
+    return { success: false, message: 'Server error.' };
   }
 }
 

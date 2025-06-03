@@ -32,8 +32,8 @@ async function getAllUsers() {
 
     return { success: true, users };
   } catch (error) {
-    console.error("Erreur lors de la récupération des utilisateurs :", error);
-    return { success: false, message: "Erreur serveur" };
+    console.error("Error fetching users", error);
+    return { success: false, message: "Server Error" };
   }
 }
 
@@ -42,23 +42,23 @@ async function desactiverCompteUtilisateur(userId) {
     const user = await User.findByPk(userId);
 
     if (!user) {
-      return { success: false, message: "Utilisateur non trouvé" };
+      return { success: false, message: "User not found" };
     }
 
     if (user.role === 'admin') {
-      return { success: false, message: "Impossible de désactiver un compte admin" };
+      return { success: false, message: "Unable to desactivate an admin" };
     }
 
     user.isApproved = !user.isApproved;
     await user.save();
 
-    const status = user.isApproved ? "activé" : "désactivé";
+    const status = user.isApproved ? "activated" : "disactivated";
 
-    return { success: true, message: `Compte utilisateur ${status} avec succès`, user };
+    return { success: true, message: `User account ${status} successfully`, user };
 
   } catch (error) {
-    console.error("Erreur lors de la désactivation du compte :", error);
-    return { success: false, message: "Erreur serveur" };
+    console.error("Error desactivating this account :", error);
+    return { success: false, message: "Server error" };
   }
 }
 

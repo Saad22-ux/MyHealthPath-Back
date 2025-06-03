@@ -17,7 +17,7 @@ async function getPendingMedecins(){
 
     return {success: true, data: pendingMedecins};
   } catch (error) {
-    console.error('Error fetching pending medecins:', error);
+    console.error('Error fetching pending doctors:', error);
     return { success: false, message: 'Server error' };
   }
 }
@@ -27,16 +27,16 @@ async function approveMedecin(userId){
 
         const user = await User.findByPk(userId);
         if (!user || user.role !== 'medecin') {
-        return { success: false, message: 'Médecin not found' };
+        return { success: false, message: 'Doctor not found' };
         }
 
         user.isApproved = true;
         await user.save();
 
-        return { success:true, message: 'Médecin approved', id: user.id };
+        return { success:true, message: 'Doctor approved', id: user.id };
     }
     catch (error) {
-        console.error('Error approving médecin:', error);
+        console.error('Error approving Doctor:', error);
         return { success:false, message: 'Server error' };
     }
 }
