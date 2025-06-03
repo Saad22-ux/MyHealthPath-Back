@@ -49,10 +49,12 @@ async function desactiverCompteUtilisateur(userId) {
       return { success: false, message: "Impossible de désactiver un compte admin" };
     }
 
-    user.isApproved = false;
+    user.isApproved = !user.isApproved;
     await user.save();
 
-    return { success: true, message: "Compte utilisateur désactivé avec succès" };
+    const status = user.isApproved ? "activé" : "désactivé";
+
+    return { success: true, message: `Compte utilisateur ${status} avec succès`, user };
 
   } catch (error) {
     console.error("Erreur lors de la désactivation du compte :", error);

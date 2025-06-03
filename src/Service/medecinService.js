@@ -116,6 +116,10 @@ async function updateMedecinProfile(medecinId, updatedData, photoFile){
     if (updatedData.adress) userFields.adress = updatedData.adress;
     if (updatedData.photo) userFields.photo = updatedData.photo;
     if (updatedData.cin) userFields.cin = updatedData.cin;
+    if (updatedData.password && updatedData.password.trim() !== '') {
+      const hashedPassword = await bcrypt.hash(updatedData.password, 10);
+      userFields.password = hashedPassword;
+    }
 
     const updatedMedecin = await medecin.update(medecinFields);
     const updatedUser = await medecin.User.update(userFields);

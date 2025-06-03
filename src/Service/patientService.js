@@ -7,33 +7,41 @@ const { userInfo } = require('os');
 
 async function createPatient(patientDTO, medecinId) {
   try {
-    const errors = validatePatient(patientDTO);
-    if (Object.keys(errors).length > 0) {
-      return { success: false, message: 'Validation failed', errors };
+    let existingUser = null;
+
+    if (patientDTO.email) {
+      existingUser = await User.findOne({ where: { email: patientDTO.email }, include: Patient });
     }
 
-    const existingUser = await User.findOne({ where: { email: patientDTO.email }, include: Patient });
-    
+    if (!existingUser && patientDTO.cin) {
+      existingUser = await User.findOne({ where: { cin: patientDTO.cin }, include: Patient });
+    }
+
     if (existingUser) {
       const existingPatient = existingUser.Patient;
 
       if (!existingPatient) {
-        return { success: false, message: 'This user exists but is not registered as a patient!' };
+        return {
+          success: false,
+          message: "Cet utilisateur existe mais n'est pas enregistré en tant que patient.",
+        };
       }
 
-      
-      const existingLink = await Patient_Medecin_Link.findOne({
+      const link = await Patient_Medecin_Link.findOne({
         where: {
           id_patient: existingPatient.id,
           id_medecin: medecinId,
         },
       });
 
-      if (existingLink) {
-        return { success: false, message: 'Patient already linked to this doctor!' };
+      if (link) {
+        return {
+          success: true,
+          message: 'Ce patient est déjà lié à vous.',
+          patient: { id: existingUser.id, email: existingUser.email },
+        };
       }
 
-      
       await Patient_Medecin_Link.create({
         id_patient: existingPatient.id,
         id_medecin: medecinId,
@@ -42,12 +50,16 @@ async function createPatient(patientDTO, medecinId) {
 
       return {
         success: true,
-        message: 'Existing patient linked to doctor successfully',
+        message: 'Patient existant trouvé. Lien créé avec le médecin.',
         patient: { id: existingUser.id, email: existingUser.email },
       };
     }
 
-    
+    const errors = validatePatient(patientDTO);
+    if (Object.keys(errors).length > 0) {
+      return { success: false, message: 'Validation échouée.', errors };
+    }
+
     const generatedPassword = crypto.randomBytes(6).toString('hex');
 
     const newUser = await User.create({
@@ -79,14 +91,16 @@ async function createPatient(patientDTO, medecinId) {
 
     return {
       success: true,
-      message: 'Patient created and linked successfully',
+      message: 'Nouveau patient créé et lié au médecin.',
       patient: { id: newUser.id, email: newUser.email },
     };
+
   } catch (err) {
-    console.error('Error creating patient:', err);
-    return { success: false, message: 'Server error' };
+    console.error('Erreur lors de la création du patient :', err);
+    return { success: false, message: 'Erreur serveur.' };
   }
 }
+
 
 async function getPatients(medecinId){
   try {
@@ -304,6 +318,10 @@ async function updatePatientProfile(patientId, updatedFields) {
     if ('cin' in updatedFields) patientFields.cin = updatedFields.cin;
     if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
     if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
+    if ('password' in updatedFields && updatedFields.password.trim()) {
+      const hashedPassword = await bcrypt.hash(updatedFields.password, 10);
+      userFields.password = hashedPassword;
+    }
 
     const updatedPatient = await patient.update(patientFields);
 

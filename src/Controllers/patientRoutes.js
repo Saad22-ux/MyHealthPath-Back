@@ -12,23 +12,27 @@ const { createPatient,
 const { Medecin, Patient, Prescription, Notification } = require('../models');
 
 router.post('/create-patient', async (req, res) => {
-  const userId = req.session.user.id; 
-    
-  const medecin = await Medecin.findOne({ where: { UserId: userId } });
+  const userId = req.session.user.id;
+  try{
+    const medecin = await Medecin.findOne({ where: { UserId: userId } });
 
-  if (!medecin) {
-    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
-  }
+    if (!medecin) {
+      return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+    }
 
-  const patientDTO = req.body;
-  const medecinId = medecin.id;
+    const patientDTO = req.body;
+    const medecinId = medecin.id;
 
-  const result = await createPatient(patientDTO,medecinId);
+    const result = await createPatient(patientDTO,medecinId);
 
-  if (result.success) {
-    res.status(201).json({ message: result.message, patient: result.patient });
-  } else {
-    res.status(500).json({ message: result.message });
+    if (result.success) {
+      res.status(201).json({ message: result.message, patient: result.patient });
+    } else {
+      res.status(500).json({ message: result.message });
+    }
+  }catch (error) {
+    console.error('Error in /create-patient route:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -100,7 +104,7 @@ router.get('/get-patients/:id', async (req, res) => {
   const result = await getPatientDetails(patientId);
 
   if (result.success) {
-    res.status(200).json(result.data);
+    res.status(200).json({message: result.message, data: result.data });
   } else {
     res.status(404).json({ message: result.message });
   }
