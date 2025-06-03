@@ -378,6 +378,95 @@ async function getPatientProfile(patientId) {
   }
 }
 
+async function findPatientByCIN(cin) {
+  try {
+    if (!cin) {
+      return { success: false, message: 'CIN is required.' };
+    }
+
+    const patient = await Patient.findOne({
+      include: {
+        model: User,
+        where: { cin },
+        attributes: ['id', 'cin', 'fullName', 'email', 'telephone', 'adress']
+      }
+    });
+
+    if (!patient) {
+      return { success: false, message: 'Patient not found.' };
+    }
+
+    return {
+      success: true,
+      patient: {
+        id: patient.id,
+        genre: patient.genre,
+        date_naissance: patient.date_naissance,
+        taille: patient.taille,
+        poids: patient.poids,
+        user: patient.User
+      }
+    };
+
+  } catch (error) {
+    console.error('Error searching patient by CIN:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
+
+async function linkMedecinToPatient(cin, medecinId) {
+  try {
+    if (!cin || !medecinId) {
+      return { success: false, message: 'CIN and medecinId are required.' };
+    }
+
+    const user = await User.findOne({ where: { cin } });
+
+    if (!user) {
+      return { success: false, message: 'Patient user not found.' };
+    }
+
+    const patient = await Patient.findOne({ where: { UserId: user.id } });
+
+    if (!patient) {
+      return { success: false, message: 'Patient not found.' };
+    }
+
+    const medecin = await Medecin.findByPk(medecinId);
+    if (!medecin) {
+      return { success: false, message: 'Medecin not found.' };
+    }
+
+    const existingLink = await Patient_Medecin_Link.findOne({
+      where: {
+        id_patient: patient.id,
+        id_medecin: medecinId,
+      },
+    });
+
+    if (existingLink) {
+      return { success: false, message: 'Link already exists between this medecin and patient.' };
+    }
+
+    await Patient_Medecin_Link.create({
+      id_patient: patient.id,
+      id_medecin: medecinId,
+      isSubscribed: true,
+      state: 'Normal',
+    });
+
+    return {
+      success: true,
+      message: 'Medecin linked to patient successfully.',
+    };
+  } catch (error) {
+    console.error('Error linking medecin to patient:', error);
+    return { success: false, message: 'Server error.' };
+  }
+}
+
+
+
 
 
 
@@ -388,5 +477,7 @@ module.exports = { createPatient,
                   getPatientDetails,
                   getPatientStatistics,
                   updatePatientProfile,
-                  getPatientProfile
+                  getPatientProfile,
+                  findPatientByCIN,
+                  linkMedecinToPatient
                 };

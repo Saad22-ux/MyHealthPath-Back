@@ -7,7 +7,9 @@ const { createPatient,
         getPatientDetails, 
         getPatientStatistics,
         updatePatientProfile,
-        getPatientProfile
+        getPatientProfile,
+        findPatientByCIN,
+        linkMedecinToPatient
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
 
@@ -202,6 +204,37 @@ router.put('/notifications/:id/lue', async (req, res) => {
   await notification.save();
 
   res.json({ message: "Notification marquée comme lue." });
+});
+
+router.post('/rechercher', async (req, res) => {
+  const { cin } = req.body;
+
+  const result = await findPatientByCIN(cin);
+
+  if (!result.success) {
+    return res.status(404).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
+router.post('/lier-patient', async (req, res) => {
+  const { cin } = req.body;
+  const medecin = await Medecin.findOne({ where: { UserId: userId } });
+
+  if (!medecin) {
+    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+  }
+
+  const medecinId = medecin.id; 
+
+  const result = await linkMedecinToPatient(cin, medecinId);
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
 });
 
 module.exports = router;
