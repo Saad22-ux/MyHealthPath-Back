@@ -34,7 +34,7 @@ const { User, Patient } = require('../models');
           patientId: patient ? patient.id : null
         };
         
-        res.status(200).json({ message: 'Logged in successfully', role: user.role, patientId: patient ? patient.id : null});
+        res.status(200).json({ message: 'Logged in successfully', role: user.role, patientId: patient ? patient.id : null, id: user.id});
       } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ message: 'Server error' });

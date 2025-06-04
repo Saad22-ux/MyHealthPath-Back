@@ -184,6 +184,9 @@ router.put('/profilePatient/update', upload.single('photo'), async (req,res)=>{
 });
 
 router.get('/notifications', async (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ message: "Utilisateur non authentifié." });
+  }
   const userId = req.session.user.id;
   const patient = await Patient.findOne({ where: { UserId: userId } });
 
@@ -222,22 +225,33 @@ router.post('/rechercher', async (req, res) => {
 });
 
 router.post('/lier-patient', async (req, res) => {
-  const { cin } = req.body;
-  const medecin = await Medecin.findOne({ where: { UserId: userId } });
+  try {
+    const { cin } = req.body;
 
-  if (!medecin) {
-    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+    const userId = req.session.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Utilisateur non authentifié' });
+    }
+
+    const medecin = await Medecin.findOne({ where: { UserId: userId } });
+
+    if (!medecin) {
+      return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+    }
+
+    const medecinId = medecin.id;
+    const result = await linkMedecinToPatient(cin, medecinId);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Erreur serveur /lier-patient:', error);
+    return res.status(500).json({ message: 'Erreur serveur.' });
   }
-
-  const medecinId = medecin.id; 
-
-  const result = await linkMedecinToPatient(cin, medecinId);
-
-  if (!result.success) {
-    return res.status(400).json(result);
-  }
-
-  return res.status(200).json(result);
 });
+
 
 module.exports = router;

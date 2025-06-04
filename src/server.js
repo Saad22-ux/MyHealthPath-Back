@@ -13,7 +13,9 @@ const journalSanteRoutes = require('./Controllers/journalSanteRoutes');
 const medecinRoutes = require('./Controllers/medecinRoutes');
 const sequelize = require('./config/database');
 const cors = require('cors');
-require('./scripts/cron');
+const cron = require('node-cron');
+const { genererRappelsAutomatiques } = require('./Service/notificationService');
+
 
 
 const app = express();
@@ -58,6 +60,16 @@ app.use(prescriptionRoutes);
 app.use(journalSanteRoutes);
 app.use(medecinRoutes);
 app.use('/uploads/photos', express.static('uploads/photos'));
+
+cron.schedule('* * * * *', async () => {
+  console.log('[CRON] Génération automatique des rappels en cours...');
+  try {
+    await genererRappelsAutomatiques();
+    console.log('[CRON] Rappels générés avec succès.');
+  } catch (error) {
+    console.error('[CRON] Échec de la génération des rappels :', error);
+  }
+});
 
 sequelize.authenticate()
   .then(() => {

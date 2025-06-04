@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     tableName: 'JournalSante',
-    timestamps: false
+    timestamps: true
   });
 
   JournalSante.associate = (db) => {

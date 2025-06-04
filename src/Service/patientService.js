@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { userInfo } = require('os');
 const fs = require('fs');
+const path = require('path');
 
 async function createPatient(patientDTO, medecinId) {
   try {
@@ -354,14 +355,7 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
     if (!user) return { success: false, message: 'User not found' };
 
     if (photoFile) {
-      const uploadDir = path.join(__dirname, '..', 'uploads', 'photos');
-      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-      const fileName = `${Date.now()}_${photoFile.originalname}`;
-      const finalPath = path.join(uploadDir, fileName);
-      fs.writeFileSync(finalPath, photoFile.buffer);
-
-      updatedFields.photo = `uploads/photos/${fileName}`;
+      updatedFields.photo = photoFile.path.replace(/\\/g, '/');
     }
 
     const patientFields = {};
@@ -377,7 +371,7 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
     if ('cin' in updatedFields) patientFields.cin = updatedFields.cin;
     if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
     if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
-    if ('photo' in updatedFields) patientFields.photo = updatedFields.photo;
+    if ('photo' in updatedFields) userFields.photo = updatedFields.photo;
     if ('password' in updatedFields && updatedFields.password.trim()) {
       const hashedPassword = await bcrypt.hash(updatedFields.password, 10);
       userFields.password = hashedPassword;
@@ -385,6 +379,7 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
 
     const updatedPatient = await patient.update(patientFields);
 
+    console.log('Updating patient with:', patientFields);
     let updatedUser = null;
     if (user) {
       updatedUser = await user.update(userFields);
@@ -430,7 +425,8 @@ async function getPatientProfile(patientId) {
         cin: user?.cin,
         email: user?.email,
         telephone: user?.telephone,
-        adress: user?.adress
+        adress: user?.adress,
+        photo: user?.photo
       }
     };
   } catch (error) {
