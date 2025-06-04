@@ -27,6 +27,21 @@ async function createJournalSante(patientId, data) {
     }
     const medecinId = prescription.MedecinId;
 
+    const todayDate = new Date(date || new Date());
+    const formattedDate = todayDate.toISOString().split('T')[0];
+
+    let existingJournal = await JournalSante.findOne({
+      where: {
+        PatientId: patientId,
+        PrescriptionId: prescriptionId,
+        date: formattedDate
+      }
+    });
+
+    if (existingJournal) {
+      return await upsertJournalSante(patientId, data);
+    }
+
     const aMedicaments = Array.isArray(medicaments) && medicaments.length > 0;
     const aIndicateurs = Array.isArray(indicateurs) && indicateurs.length > 0;
 
@@ -38,9 +53,9 @@ async function createJournalSante(patientId, data) {
 
     const journal = await JournalSante.create({
       PatientId: patientId,
-      date: date || new Date(),
+      date: formattedDate,
       PrescriptionId: prescriptionId,
-      pris: pris
+      pris
     });
 
     if (pris) {
@@ -123,27 +138,19 @@ async function createJournalSante(patientId, data) {
 
 async function upsertJournalSante(patientId, data) {
   try {
-    const todayDate = new Date();
-    const yyyy = todayDate.getFullYear();
-    const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
-    const dd = String(todayDate.getDate()).padStart(2, '0');
-    const formattedDate = `${yyyy}-${mm}-${dd}`;
+    const { medicaments, date, indicateurs, prescriptionId } = data;
 
-    const journalsExistants = await JournalSante.findAll({
-      where: { PatientId: patientId },
-      order: [['date', 'DESC']]
-    });
-    console.log("Journaux existants pour patient", patientId, journalsExistants.map(j => ({ id: j.id, date: j.date })));
-
+    const todayDate = new Date(date || new Date());
+    const formattedDate = todayDate.toISOString().split('T')[0];
 
     let journal = await JournalSante.findOne({
       where: {
         PatientId: patientId,
         date: formattedDate,
+        PrescriptionId: prescriptionId
       }
     });
 
-    const { medicaments, indicateurs, prescriptionId } = data;
     const prescription = await Prescription.findByPk(prescriptionId);
     if (!prescription) {
       return { success: false, message: "Prescription not found." };
@@ -153,55 +160,76 @@ async function upsertJournalSante(patientId, data) {
     const aMedicaments = Array.isArray(medicaments) && medicaments.length > 0;
     const aIndicateurs = Array.isArray(indicateurs) && indicateurs.length > 0;
 
-    let pris = aMedicaments && aIndicateurs;
-
     if (journal) {
-      // Toujours mettre à jour le journal même si pris == false
       await journal.update({
-        pris,
         PrescriptionId: prescriptionId
       });
 
-      await journal.reload();
+      if (!aMedicaments) {
+        await SuiviMedicament.destroy({ where: { JournalSanteId: journal.id } });
+      }
 
-      if (pris) {
-        // Upsert SuiviMedicament
-        for (const med of medicaments) {
-          const [suiviMed, created] = await SuiviMedicament.findOrCreate({
-            where: {
-              JournalSanteId: journal.id,
-              MedicamentId: med.medicamentId,
-            },
-            defaults: {
-              pris: med.pris,
-            },
-          });
-          if (!created) {
-            await suiviMed.update({ pris: med.pris });
-          }
+      if (!aIndicateurs) {
+        await SuiviIndicateur.destroy({ where: { JournalSanteId: journal.id } });
+      }
+
+      // ✅ SuiviMedicament
+      await Promise.all(medicaments.map(async (med) => {
+        const [suiviMed, created] = await SuiviMedicament.findOrCreate({
+          where: {
+            JournalSanteId: journal.id,
+            MedicamentId: med.medicamentId,
+          },
+          defaults: {
+            pris: med.pris,
+          },
+        });
+
+        if (!created && !suiviMed.pris && med.pris) {
+          await suiviMed.update({ pris: true });
         }
+      }));
 
-        // Upsert SuiviIndicateur
-        for (const ind of indicateurs) {
-          const [suiviInd, created] = await SuiviIndicateur.findOrCreate({
-            where: {
-              JournalSanteId: journal.id,
-              IndicateurId: ind.indicateurId,
-            },
-            defaults: {
-              mesure: ind.mesure ?? 1,
-              valeur: ind.valeur,
-            },
+      // ✅ SuiviIndicateur
+      await Promise.all(indicateurs.map(async (ind) => {
+        const [suiviInd, created] = await SuiviIndicateur.findOrCreate({
+          where: {
+            JournalSanteId: journal.id,
+            IndicateurId: ind.indicateurId,
+          },
+          defaults: {
+            mesure: ind.mesure ?? 1,
+            valeur: ind.valeur,
+          },
+        });
+
+        const valeurDejaSaisie =
+          suiviInd.valeur !== null &&
+          suiviInd.valeur !== undefined &&
+          suiviInd.valeur !== '';
+
+        const needUpdateValeur =
+          !valeurDejaSaisie &&
+          ind.valeur != null &&
+          ind.valeur !== '';
+
+        const needUpdateMesure = !suiviInd.mesure && ind.mesure;
+
+        if (!created && (needUpdateValeur || needUpdateMesure)) {
+          await suiviInd.update({
+            mesure: needUpdateMesure ? (ind.mesure ?? 1) : suiviInd.mesure,
+            valeur: needUpdateValeur ? ind.valeur : suiviInd.valeur,
           });
-          if (!created) {
-            await suiviInd.update({
-              mesure: ind.mesure ?? 1,
-              valeur: ind.valeur,
-            });
-          }
         }
+      }));
 
-        // Seuils indicateurs
+      const nbMeds = await SuiviMedicament.count({ where: { JournalSanteId: journal.id } });
+      const nbIndics = await SuiviIndicateur.count({ where: { JournalSanteId: journal.id } });
+      const isPris = nbMeds > 0 && nbIndics > 0;
+
+      await journal.update({ pris: isPris });
+
+      if (aIndicateurs) {
         const seuilsIndicateurs = {
           'Glycémie à jeun': { dangerMin: 0, normalMin: 70, normalMax: 100, dangerMax: 125 },
           'Glycémie postprandiale': { dangerMin: 0, normalMin: 70, normalMax: 140, dangerMax: 200 },
@@ -230,7 +258,6 @@ async function upsertJournalSante(patientId, data) {
           mapIdToNom[ind.id] = ind.nom;
         });
 
-        // Calcul de l'état global
         let etatGlobal = 'Good';
         for (const ind of indicateurs) {
           const nomInd = mapIdToNom[ind.indicateurId];
@@ -250,16 +277,10 @@ async function upsertJournalSante(patientId, data) {
         if (etatGlobal !== 'Good') {
           await updatePatientStateForDoctor(patientId, medecinId, etatGlobal);
         }
-
-      } else {
-        // Si pas de medicaments ou indicateurs, supprimer les suivis existants
-        await SuiviMedicament.destroy({ where: { JournalSanteId: journal.id } });
-        await SuiviIndicateur.destroy({ where: { JournalSanteId: journal.id } });
       }
 
       return { success: true, message: 'Health journal updated.', journal };
     } else {
-      // Journal non trouvé, créer un nouveau
       return await createJournalSante(patientId, data);
     }
   } catch (error) {

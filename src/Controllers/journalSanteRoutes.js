@@ -8,7 +8,7 @@ router.post('/journal/:patientId', async (req, res) => {
   res.status(result.success ? 201 : 500).json(result);
 });
 
-router.put('/journal/:patientId', async (req, res) => {
+router.put('/journal/update/:patientId', async (req, res) => {
   const { patientId } = req.params;
   const journalData = req.body;
 
