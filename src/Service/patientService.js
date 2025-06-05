@@ -372,7 +372,8 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
     if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
     if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
     if ('photo' in updatedFields) userFields.photo = updatedFields.photo;
-    if ('password' in updatedFields && updatedFields.password.trim()) {
+    if ('password' in updatedFields && typeof updatedFields.password === 'string' && updatedFields.password.trim())  {
+      console.log('Received password:', updatedFields.password);
       const hashedPassword = await bcrypt.hash(updatedFields.password, 10);
       userFields.password = hashedPassword;
     }

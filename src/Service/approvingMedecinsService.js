@@ -7,7 +7,7 @@ async function getPendingMedecins(){
       
         include: {
             model: User,
-            attributes: ['fullName','email'],
+            attributes: ['fullName','email', 'adress'],
             where: {
                 isApproved: false,
                 role: 'medecin'

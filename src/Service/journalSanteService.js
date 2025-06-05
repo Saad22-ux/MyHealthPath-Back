@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const { JournalSante, Prescription, SuiviMedicament, SuiviIndicateur, Indicateur, Patient, Patient_Medecin_Link } = require('../models');
+const { verifierEtNotifierEtatDanger } = require('./notificationService');
 
 async function updatePatientStateForDoctor(patientId, medecinId, etatGlobal) {
   try {
@@ -96,7 +97,7 @@ async function createJournalSante(patientId, data) {
 
       const suivisInd = indicateurs.map(ind => ({
         IndicateurId: ind.indicateurId,
-        mesure: ind.mesure,
+        mesure: ind.mesure !== undefined && ind.mesure !== null ? ind.mesure : false,
         valeur: ind.valeur,
         JournalSanteId: journal.id
       }));
@@ -122,6 +123,8 @@ async function createJournalSante(patientId, data) {
         await updatePatientStateForDoctor(patientId, medecinId, etatGlobal);
       }
     }
+
+    await verifierEtNotifierEtatDanger(patientId);
 
     return {
       success: true,
@@ -173,7 +176,6 @@ async function upsertJournalSante(patientId, data) {
         await SuiviIndicateur.destroy({ where: { JournalSanteId: journal.id } });
       }
 
-      // ✅ SuiviMedicament
       await Promise.all(medicaments.map(async (med) => {
         const [suiviMed, created] = await SuiviMedicament.findOrCreate({
           where: {
@@ -190,7 +192,6 @@ async function upsertJournalSante(patientId, data) {
         }
       }));
 
-      // ✅ SuiviIndicateur
       await Promise.all(indicateurs.map(async (ind) => {
         const [suiviInd, created] = await SuiviIndicateur.findOrCreate({
           where: {
@@ -278,6 +279,8 @@ async function upsertJournalSante(patientId, data) {
           await updatePatientStateForDoctor(patientId, medecinId, etatGlobal);
         }
       }
+
+      await verifierEtNotifierEtatDanger(patientId);
 
       return { success: true, message: 'Health journal updated.', journal };
     } else {
