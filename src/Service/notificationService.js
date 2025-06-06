@@ -200,6 +200,9 @@ async function verifierEtNotifierEtatDanger(patientId) {
 module.exports = { envoyerNotification, 
                    genererRappelsAutomatiques, 
                    genererAlertesPourMedecins, 
-                   verifierEtNotifierEtatDanger };
+                   verifierEtNotifierEtatDanger,
+                  checkIfPatientSubmittedIndicatorsToday,
+                checkIfMissingIndicatorValues,
+              checkIfMedicamentsNotTaken };
 
 

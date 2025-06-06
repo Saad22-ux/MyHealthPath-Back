@@ -1,5 +1,14 @@
 const bcrypt = require('bcrypt');
-const { User, Patient } = require('../models');
+const moment = require('moment-timezone');
+const {
+  User, Patient, JournalSante, Prescription, Medecin
+} = require('../models');
+const {
+  checkIfPatientSubmittedIndicatorsToday,
+  checkIfMissingIndicatorValues,
+  checkIfMedicamentsNotTaken,
+  envoyerNotification
+} = require('../Service/notificationService');
 
   
   async function logUser(req,res){
@@ -33,6 +42,59 @@ const { User, Patient } = require('../models');
           role: user.role,
           patientId: patient ? patient.id : null
         };
+
+        if (user.role === 'patient' && patient) {
+      const now = moment().tz('Africa/Casablanca');        // <<<< fuseau correct
+      console.log('[LOGIN] Heure locale', now.format('YYYY-MM-DD HH:mm'));
+
+      if (now.hour() >= 20) {
+        console.log('[LOGIN] Connexion après 20 h – vérif rappels');
+
+        const journal = await checkIfPatientSubmittedIndicatorsToday(patient.id);
+        console.log('[LOGIN] Journal trouvé ?', !!journal);
+
+        if (!journal) {
+          await envoyerNotification(patient.id,
+            'Veuillez soumettre vos indicateurs de santé et prendre vos médicaments aujourd\'hui.',
+            'rappel'
+          ).catch(e => console.error('Notif error', e));
+        } else {
+          // ---- infos prescription ----
+          let medecinNom = null;
+          let prescriptionDesc = null;
+          if (journal.PrescriptionId) {
+            const j = await JournalSante.findByPk(journal.id, {
+              include: {
+                model: Prescription,
+                include: {
+                  model: Medecin,
+                  include: { model: User, attributes: ['fullName'] }
+                }
+              }
+            });
+            if (j?.Prescription) {
+              medecinNom = j.Prescription.Medecin?.User?.fullName ?? null;
+              prescriptionDesc = j.Prescription.description ?? null;
+            }
+          }
+          // ---- indicateurs manquants ----
+          const indicateursManquants = await checkIfMissingIndicatorValues(journal.id);
+          if (indicateursManquants?.length) {
+            let msg = 'Vous avez oublié de saisir certaines valeurs d’indicateurs aujourd’hui.';
+            if (medecinNom || prescriptionDesc) msg += ` (Prescrit par Dr. ${medecinNom ?? ''}${medecinNom && prescriptionDesc ? ' - ' : ''}${prescriptionDesc ?? ''})`;
+            await envoyerNotification(patient.id, msg, 'rappel');
+          }
+          // ---- médicaments non pris ----
+          const medicamentsNonPris = await checkIfMedicamentsNotTaken(journal.id);
+          if (medicamentsNonPris?.length) {
+            let msg = 'N’oubliez pas de prendre vos médicaments prescrits.';
+            if (medecinNom || prescriptionDesc) msg += ` (Prescrit par Dr. ${medecinNom ?? ''}${medecinNom && prescriptionDesc ? ' - ' : ''}${prescriptionDesc ?? ''})`;
+            await envoyerNotification(patient.id, msg, 'rappel');
+          }
+        }
+      }
+    }
+
         
         res.status(200).json({ message: 'Logged in successfully', role: user.role, patientId: patient ? patient.id : null, id: user.id});
       } catch (error) {
