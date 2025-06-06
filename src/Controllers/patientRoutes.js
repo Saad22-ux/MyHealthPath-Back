@@ -13,7 +13,8 @@ const { createPatient,
         updatePatientProfileParMedecin
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
-const upload = require('../middlewares/uploadPhoto');
+const multer  = require('multer');
+const upload  = multer();
 
 router.post('/create-patient', async (req, res) => {
   const userId = req.session.user.id;
@@ -158,29 +159,22 @@ router.get('/profilePatient', async (req, res) => {
   }
 });
 
-router.put('/profilePatient/update', upload.single('photo'), async (req,res)=>{
-  if (!req.session || !req.session.user) {
-      return res.status(401).json({ message: 'Utilisateur non authentifié.' });
-    }
-  
-    const userId = req.session.user.id;
-    
-    const patient = await Patient.findOne({ where: { UserId: userId } });
-  
-    if (!patient) {
-      return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
-    }
-    const patientId = patient.id;
-    const updatedData = req.body;
-    const photoFile = req.file;
+router.put('/profilePatient/update', upload.single('photo'), async (req, res) => {
+  // Auth
+  if (!req.session || !req.session.user)
+    return res.status(401).json({ message: 'Utilisateur non authentifié.' });
 
-    const result = await updatePatientProfile(patientId, updatedData, photoFile);
+  const userId  = req.session.user.id;
+  const patient = await Patient.findOne({ where: { UserId: userId } });
+  if (!patient) return res.status(404).json({ message: 'Patient non trouvé pour cet utilisateur.' });
 
-    if (result.success) {
-    res.status(200).json(result);
-  } else {
-    res.status(400).json(result);
-  }
+  // Données envoyées
+  const updatedData = req.body;
+  const photoFile   = req.file ?? null;
+
+  // Mise à jour
+  const result = await updatePatientProfile(patient.id, updatedData, photoFile);
+  return res.status(result.success ? 200 : 400).json(result);
 });
 
 router.get('/notifications', async (req, res) => {

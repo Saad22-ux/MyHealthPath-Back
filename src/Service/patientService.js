@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { userInfo } = require('os');
 const fs = require('fs');
+const { Op } = require('sequelize');
 const path = require('path');
 
 async function createPatient(patientDTO, medecinId) {
@@ -345,58 +346,62 @@ async function updatePatientProfileParMedecin(patientId, updatedFields) {
 
 async function updatePatientProfile(patientId, updatedFields, photoFile) {
   try {
+    /* ─ 1. Chargement des instances ─────────────────────────────────────── */
     const patient = await Patient.findByPk(patientId);
-
-    if (!patient) {
-      return { success: false, message: 'Patient not found' };
-    }
+    if (!patient) return { success: false, message: 'Patient not found' };
 
     const user = await User.findByPk(patient.UserId);
-    if (!user) return { success: false, message: 'User not found' };
+    if (!user)   return { success: false, message: 'User not found' };
 
+    /* ─ 2. Gestion de la photo ──────────────────────────────────────────── */
     if (photoFile) {
-      updatedFields.photo = photoFile.path.replace(/\\/g, '/');
+      const uploadDir = path.join(__dirname, '..', 'uploads', 'photos');
+      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+      const fileName = `${Date.now()}_${photoFile.originalname}`;
+      fs.writeFileSync(path.join(uploadDir, fileName), photoFile.buffer);
+      updatedFields.photo = `uploads/photos/${fileName}`;
     }
 
-    const patientFields = {};
-    const userFields = {};
+    /* ─ 3. Mapping des champs vers les instances ───────────────────────── */
+    if ('genre'          in updatedFields) patient.genre          = updatedFields.genre;
+    if ('date_naissance' in updatedFields) patient.date_naissance = updatedFields.date_naissance;
+    if ('taille'         in updatedFields) patient.taille         = updatedFields.taille;
+    if ('poids'          in updatedFields) patient.poids          = updatedFields.poids;
 
-    if ('genre' in updatedFields) patientFields.genre = updatedFields.genre;
-    if ('date_naissance' in updatedFields) patientFields.date_naissance = updatedFields.date_naissance;
-    if ('taille' in updatedFields) patientFields.taille = updatedFields.taille;
-    if ('poids' in updatedFields) patientFields.poids = updatedFields.poids;
+    if ('fullName'  in updatedFields) user.fullName  = updatedFields.fullName;
+    if ('email'     in updatedFields) user.email     = updatedFields.email;
+    if ('cin'       in updatedFields) user.cin       = updatedFields.cin;
+    if ('telephone' in updatedFields) user.telephone = updatedFields.telephone;
+    if ('adress'    in updatedFields) user.adress    = updatedFields.adress;
+    if ('photo'     in updatedFields) user.photo     = updatedFields.photo;
 
-    if ('fullName' in updatedFields) userFields.fullName = updatedFields.fullName;
-    if ('email' in updatedFields) userFields.email = updatedFields.email;
-    if ('cin' in updatedFields) patientFields.cin = updatedFields.cin;
-    if ('telephone' in updatedFields) userFields.telephone = updatedFields.telephone;
-    if ('adress' in updatedFields) userFields.adress = updatedFields.adress;
-    if ('photo' in updatedFields) userFields.photo = updatedFields.photo;
-    if ('password' in updatedFields && typeof updatedFields.password === 'string' && updatedFields.password.trim())  {
-      console.log('Received password:', updatedFields.password);
-      const hashedPassword = await bcrypt.hash(updatedFields.password, 10);
-      userFields.password = hashedPassword;
-    }
+    /* ─ 4. Mot de passe : hash manuel + désactivation du hook pour ce save ─ */
+   if (
+  'password' in updatedFields &&
+  typeof updatedFields.password === 'string' &&
+  updatedFields.password.trim()
+) {
+  user.password = await bcrypt.hash(updatedFields.password.trim(), 10);
+  await user.save({ hooks: false });
+} else {
+  await user.save();
+}
 
-    const updatedPatient = await patient.update(patientFields);
-
-    console.log('Updating patient with:', patientFields);
-    let updatedUser = null;
-    if (user) {
-      updatedUser = await user.update(userFields);
-    }
+    /* ─ 5. Sauvegarde du patient ───────────────────────────────────────── */
+    await patient.save();                  // nothing spécial ici
 
     return {
       success: true,
       message: 'Patient profile updated successfully',
-      patient: updatedPatient,
-      user: updatedUser,
+      patient,
+      user,
     };
-  } catch (error) {
-    console.error('Error updating patient profile :', error);
+  } catch (err) {
+    console.error('Error updating patient profile :', err);
     return { success: false, message: 'Server error' };
   }
 }
+
 
 async function getPatientProfile(patientId) {
   try {
