@@ -10,7 +10,8 @@ const { createPatient,
         getPatientProfile,
         findPatientByCIN,
         linkMedecinToPatient,
-        updatePatientProfileParMedecin
+        updatePatientProfileParMedecin,
+        getJournauxByPrescription
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
 const multer  = require('multer');
@@ -247,5 +248,10 @@ router.post('/lier-patient', async (req, res) => {
   }
 });
 
+router.get('/prescriptions/:id/journaux', async (req, res) => {
+  const { id } = req.params;
+  const result = await getJournauxByPrescription(id);
+  res.status(result.success ? 200 : 404).json(result);
+});
 
 module.exports = router;

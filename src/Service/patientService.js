@@ -118,7 +118,7 @@ async function getPatients(medecinId){
         },
         {
           model: User,
-          attributes: ['fullName', 'email'],
+          attributes: ['fullName', 'email', 'photo'],
         },
       ],
     });
@@ -402,7 +402,6 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
   }
 }
 
-
 async function getPatientProfile(patientId) {
   try {
     const patient = await Patient.findByPk(patientId, {
@@ -451,7 +450,7 @@ async function findPatientByCIN(cin) {
       include: {
         model: User,
         where: { cin },
-        attributes: ['id', 'cin', 'fullName', 'email', 'telephone', 'adress']
+        attributes: ['id', 'cin', 'fullName', 'email', 'telephone', 'adress', 'photo']
       }
     });
 
@@ -528,6 +527,50 @@ async function linkMedecinToPatient(cin, medecinId) {
   }
 }
 
+async function getJournauxByPrescription(prescriptionId) {
+  try {
+    const prescription = await Prescription.findByPk(prescriptionId, {
+      include: [
+        { model: Patient, include: { model: User, attributes: ['fullName', 'email'] } },
+      ],
+    });
+    if (!prescription) {
+      return { success: false, message: 'Prescription not found' };
+    }
+
+    const journaux = await JournalSante.findAll({
+      where: { PrescriptionId: prescriptionId },
+      order: [['date', 'DESC']],                
+      include: [
+        {                                         
+          model: SuiviMedicament,
+          include: { model: Medicament, attributes: ['name', 'dose', 'frequency'] },
+        },
+        {                                         
+          model: SuiviIndicateur,
+          include: { model: Indicateur, attributes: ['name', 'valeur'] },
+        },
+      ],
+    });
+
+    return {
+      success: true,
+      message: 'Journaux récupérés avec succès',
+      data: {
+        prescription: {
+          id: prescription.id,
+          description: prescription.description,
+          date: prescription.date,
+          patient: prescription.Patient?.User?.fullName,
+        },
+        journaux,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching journaux by prescription:', error);
+    return { success: false, message: 'Server error' };
+  }
+}
 
 
 
@@ -543,5 +586,6 @@ module.exports = { createPatient,
                   updatePatientProfile,
                   getPatientProfile,
                   findPatientByCIN,
-                  linkMedecinToPatient
+                  linkMedecinToPatient,
+                  getJournauxByPrescription
                 };

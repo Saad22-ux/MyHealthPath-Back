@@ -76,7 +76,8 @@ async function getMedecinProfile(medecinId) {
         telephone: user?.telephone,
         email: user?.email,
         photo: user?.photo,
-        cin: user?.cin
+        cin: user?.cin,
+        photoUrl: user?.photo
       }
     };
   } catch (error) {
