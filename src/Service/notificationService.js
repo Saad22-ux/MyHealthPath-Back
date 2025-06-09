@@ -120,87 +120,11 @@ async function genererRappelsAutomatiques() {
   }
 }
 
-async function genererAlertesPourMedecins() {
-  try {
-    const liens = await Patient_Medecin_Link.findAll({
-      where: { state: 'Danger' },
-      include: [Patient],
-    });
 
-    for (const lien of liens) {
-      const medecinId = lien.id_medecin;        // ✅ colonne réelle
-      const patientId = lien.id_patient;        // ✅ colonne réelle
-
-      const existe = await Notification.findOne({
-        where: {
-          PatientId: patientId,
-          MedecinId: medecinId,
-          type: 'alerte',
-          isRead: false,
-        },
-      });
-
-      if (!existe) {
-        await Notification.create({
-          message: `Alerte : Le patient ID ${patientId} est en état de danger.`,
-          type: 'alerte',
-          PatientId: patientId,
-          MedecinId: medecinId,
-          isRead: false,
-        });
-      }
-    }
-    return { success: true, message: 'Alertes générées.' };
-  } catch (error) {
-    console.error('Erreur génération alertes danger :', error);
-    return { success: false, message: 'Erreur lors de la génération des alertes.' };
-  }
-}
-
-async function verifierEtNotifierEtatDanger(patientId) {
-  const liens = await Patient_Medecin_Link.findAll({
-    where: { id_patient: patientId },
-    include: [
-      {
-        model: Medecin,
-        include: { model: User, attributes: ['fullName'] },
-      },
-    ],
-  });
-
-  const patientUser = await User.findByPk(patientId);
-  const patientNom = patientUser?.fullName || 'un patient';
-
-  for (const lien of liens) {
-    if (lien.state === 'Danger') {
-      const medecinId = lien.id_medecin;             // ✅ colonne réelle
-      const alerteExiste = await Notification.findOne({
-        where: {
-          type: 'alerte',
-          MedecinId: medecinId,
-          PatientId: patientId,
-          isRead: false,
-        },
-      });
-
-      if (!alerteExiste) {
-        await Notification.create({
-          message: `Alerte : Votre patient(e) ${patientNom} est en état de danger.`,
-          type: 'alerte',
-          MedecinId: medecinId,
-          PatientId: patientId,
-          isRead: false,
-        });
-      }
-    }
-  }
-}
 
 
 module.exports = { envoyerNotification, 
                    genererRappelsAutomatiques, 
-                   genererAlertesPourMedecins, 
-                   verifierEtNotifierEtatDanger,
                   checkIfPatientSubmittedIndicatorsToday,
                 checkIfMissingIndicatorValues,
               checkIfMedicamentsNotTaken };

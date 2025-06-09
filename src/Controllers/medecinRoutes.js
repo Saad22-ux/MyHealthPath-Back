@@ -3,7 +3,6 @@ const router = express.Router();
 const { Medecin } = require('../models');
 const upload = require('../middlewares/uploadPhoto');
 const { getMedecinProfile, updateMedecinProfile, getMoyennesIndicateurs  } = require('../Service/medecinService');
-const { genererAlertesPourMedecins } = require('../Service/notificationService');
 
 router.get('/profileMedecin', async (req, res) => {
     if (!req.session || !req.session.user) {
@@ -53,27 +52,6 @@ router.put('/profileMedecin/update', upload.single('photo'), async (req,res)=>{
     res.status(200).json(result);
   } else {
     res.status(400).json(result);
-  }
-});
-
-router.post('/alertes/generer', async (_req, res) => {
-  const result = await genererAlertesPourMedecins();
-  return result.success
-    ? res.status(200).json({ message: result.message })
-    : res.status(500).json({ message: result.message });
-});
-
-router.get('/medecins/:medecinId/alertes', async (req, res) => {
-  const { medecinId } = req.params;
-  try {
-    const alertes = await Notification.findAll({
-      where: { MedecinId: medecinId, type: 'alerte' },
-      order: [['createdAt', 'DESC']],
-    });
-    return res.json(alertes);
-  } catch (error) {
-    console.error('Erreur récupération alertes :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
   }
 });
 
