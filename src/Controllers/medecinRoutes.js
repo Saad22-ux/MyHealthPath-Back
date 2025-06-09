@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Medecin } = require('../models');
 const upload = require('../middlewares/uploadPhoto');
-const { getMedecinProfile, updateMedecinProfile, getMoyennesIndicateurs  } = require('../Service/medecinService');
+const { getMedecinProfile, updateMedecinProfile, getMoyennesIndicateursParMedecin  } = require('../Service/medecinService');
 
 router.get('/profileMedecin', async (req, res) => {
     if (!req.session || !req.session.user) {
@@ -56,8 +56,24 @@ router.put('/profileMedecin/update', upload.single('photo'), async (req,res)=>{
 });
 
 router.get('/statistiques/indicateurs/moyennes', async (req, res) => {
-  const result = await getMoyennesIndicateurs();
-  res.status(result.success ? 200 : 500).json(result);
+  try {
+    /* ── Vérif session ─────────────────────────────────────────── */
+    const user = req.session?.user;
+    if (!user) return res.status(401).json({ message: 'Utilisateur non authentifié.' });
+
+    /* ── Trouver le médecin lié à cet user ─────────────────────── */
+    const medecin = await Medecin.findOne({ where: { UserId: user.id } });
+    if (!medecin)
+      return res.status(404).json({ message: 'Médecin non trouvé pour cet utilisateur.' });
+
+    /* ── Calcul des moyennes ───────────────────────────────────── */
+    const result = await getMoyennesIndicateursParMedecin(medecin.id);
+    return res.status(result.success ? 200 : 500).json(result);
+  } catch (err) {
+    console.error('Route /statistiques/indicateurs/moyennes :', err);
+    return res.status(500).json({ message: 'Erreur serveur' });
+  }
 });
+
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const { SuiviIndicateur, Indicateur, Medecin, User} = require('../models');
 const { sequelize } = require('../models');
+const { QueryTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 
@@ -139,26 +140,35 @@ async function updateMedecinProfile(medecinId, updatedData, photoFile){
   }
 }
 
-async function getMoyennesIndicateurs() {
+async function getMoyennesIndicateursParMedecin(medecinId) {
   try {
-    const result = await sequelize.query(`
-      SELECT i.nom AS nom, 
-             AVG(CAST(si.valeur AS DECIMAL)) AS moyenne
-      FROM SuiviIndicateur si
-      JOIN Indicateur i ON si.IndicateurId = i.id
-      WHERE si.mesure = true AND si.valeur IS NOT NULL
+    const moyennes = await sequelize.query(
+      `
+      SELECT i.nom,
+             ROUND(AVG(CAST(si.valeur AS DECIMAL(10,2))), 2) AS moyenne
+      FROM   SuiviIndicateur si
+      JOIN   Indicateur      i  ON i.id = si.IndicateurId
+      /* le journal rattache l'indicateur à une prescription */
+      JOIN   JournalSante    js ON js.id = si.JournalSanteId
+      JOIN   Prescription    p  ON p.id  = js.PrescriptionId
+      WHERE  p.MedecinId = :medecinId          -- filtre par médecin
+        AND  si.mesure   = 1                   -- seulement les mesures validées
+        AND  si.valeur  <> ''                  -- ignore vide
       GROUP BY i.nom
       ORDER BY i.nom;
-    `, {
-      type: sequelize.QueryTypes.SELECT
-    });
+      `,
+      {
+        replacements: { medecinId },
+        type: QueryTypes.SELECT,
+      }
+    );
 
-    return { success: true, data: result };
+    return { success: true, data: moyennes };
   } catch (error) {
-    console.error('Erreur lors du calcul des moyennes:', error);
+    console.error('Erreur moyennes indicateurs :', error);
     return { success: false, message: 'Erreur serveur' };
   }
 }
 
 
-module.exports = { createMedecin, getMedecinProfile, updateMedecinProfile, getMoyennesIndicateurs };
+module.exports = { createMedecin, getMedecinProfile, updateMedecinProfile, getMoyennesIndicateursParMedecin };
