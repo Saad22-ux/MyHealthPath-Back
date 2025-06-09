@@ -122,33 +122,35 @@ async function genererRappelsAutomatiques() {
 
 async function genererAlertesPourMedecins() {
   try {
-  const liens = await Patient_Medecin_Link.findAll({
-    where: { state: 'Danger' },
-    include: [Patient, Medecin],
-  });
-
-  for (const lien of liens) {
-    const existe = await Notification.findOne({
-      where: {
-        PatientId: lien.PatientIdt,
-        MedecinId: lien.MedecinId,
-        type: 'alerte',
-        isRead: false,
-      },
+    const liens = await Patient_Medecin_Link.findAll({
+      where: { state: 'Danger' },
+      include: [Patient],
     });
 
-    if (!existe) {
-      await Notification.create({
-        message: `Alerte : Le patient ID ${lien.PatientId} est en état de danger.`,
-        type: 'alerte',
-        PatientId: lien.PatientId,
-        MedecinId: lien.MedecinId,
-        isRead: false,
-      });
-    }
-  }
+    for (const lien of liens) {
+      const medecinId = lien.id_medecin;        // ✅ colonne réelle
+      const patientId = lien.id_patient;        // ✅ colonne réelle
 
-  return { success: true, message: 'Alertes générées.' };
+      const existe = await Notification.findOne({
+        where: {
+          PatientId: patientId,
+          MedecinId: medecinId,
+          type: 'alerte',
+          isRead: false,
+        },
+      });
+
+      if (!existe) {
+        await Notification.create({
+          message: `Alerte : Le patient ID ${patientId} est en état de danger.`,
+          type: 'alerte',
+          PatientId: patientId,
+          MedecinId: medecinId,
+          isRead: false,
+        });
+      }
+    }
+    return { success: true, message: 'Alertes générées.' };
   } catch (error) {
     console.error('Erreur génération alertes danger :', error);
     return { success: false, message: 'Erreur lors de la génération des alertes.' };
@@ -161,12 +163,9 @@ async function verifierEtNotifierEtatDanger(patientId) {
     include: [
       {
         model: Medecin,
-        include: {
-          model: User,
-          attributes: ['fullName']
-        }
-      }
-    ]
+        include: { model: User, attributes: ['fullName'] },
+      },
+    ],
   });
 
   const patientUser = await User.findByPk(patientId);
@@ -174,22 +173,23 @@ async function verifierEtNotifierEtatDanger(patientId) {
 
   for (const lien of liens) {
     if (lien.state === 'Danger') {
+      const medecinId = lien.id_medecin;             // ✅ colonne réelle
       const alerteExiste = await Notification.findOne({
         where: {
           type: 'alerte',
-          MedecinId: lien.Medecin?.User?.id,
+          MedecinId: medecinId,
           PatientId: patientId,
-          isRead: false
-        }
+          isRead: false,
+        },
       });
 
       if (!alerteExiste) {
         await Notification.create({
           message: `Alerte : Votre patient(e) ${patientNom} est en état de danger.`,
           type: 'alerte',
-          MedecinId: lien.Medecin?.User?.id,
+          MedecinId: medecinId,
           PatientId: patientId,
-          isRead: false
+          isRead: false,
         });
       }
     }
