@@ -41,4 +41,26 @@ async function approveMedecin(userId){
     }
 }
 
-module.exports = { getPendingMedecins, approveMedecin };
+async function disapproveMedecin(userId) {
+  try {
+    const user = await User.findByPk(userId);
+    if (!user || user.role !== 'medecin') {
+      return { success: false, message: 'Médecin introuvable.' };
+    }
+
+    const medecin = await Medecin.findOne({ where: { UserId: userId } });
+    if (medecin) {
+      await medecin.destroy(); 
+    }
+
+    await user.destroy(); 
+
+    return { success: true, message: 'Médecin supprimé avec succès.' };
+  } catch (error) {
+    console.error('Erreur lors de la désapprobation du médecin :', error);
+    return { success: false, message: 'Erreur serveur.' };
+  }
+}
+
+
+module.exports = { getPendingMedecins, approveMedecin, disapproveMedecin };

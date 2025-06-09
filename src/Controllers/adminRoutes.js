@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPendingMedecins, approveMedecin } = require('../Service/approvingMedecinsService');
+const { getPendingMedecins, approveMedecin, disapproveMedecin } = require('../Service/approvingMedecinsService');
 const { User, Medecin } = require('../models');
 const { createAdminUser, desactiverCompteUtilisateur, getAllUsers, getGlobalUserCounts, getUserRegistrationPerMonth }  = require('../Service/adminService');
 
@@ -38,6 +38,12 @@ router.post('/approve-medecin/:id', async (req, res) => {
         res.status(404).json({message: result.message});
     }
 
+});
+
+router.delete('/admin/medecins/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const result = await disapproveMedecin(userId);
+  res.status(result.success ? 200 : 500).json(result);
 });
 
 router.get('/admin/utilisateurs', async (req, res) => {
