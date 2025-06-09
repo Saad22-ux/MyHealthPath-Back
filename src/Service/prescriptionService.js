@@ -1,4 +1,6 @@
-const { Prescription, Medicament, Patient, Medecin, Indicateur } = require('../models');
+const { Prescription, Medicament, Patient, Medecin, Indicateur, SuiviMedicament, SuiviIndicateur,
+  JournalSante, } = require('../models');
+const { Op, Sequelize  } = require('sequelize');
 
 async function createPrescription(medecinId, patientId, prescriptionDTO) {
   try {
@@ -62,50 +64,131 @@ async function createPrescription(medecinId, patientId, prescriptionDTO) {
 }
 
 async function updatePrescription(prescriptionId, updatedData) {
-    try {
-      const prescription = await Prescription.findByPk(prescriptionId);
-      if (!prescription) return { success: false, message: 'Perscription not found' };
-  
-      
-      if (updatedData.description) {
-        prescription.description = updatedData.description;
-        await prescription.save();
+  try {
+    const prescription = await Prescription.findByPk(prescriptionId);
+    if (!prescription)
+      return { success: false, message: 'Prescription not found' };
+
+    /* ------------------------------------------------------------------ */
+    /* 1. Mise à jour des champs simples                                  */
+    /* ------------------------------------------------------------------ */
+    if (updatedData.description) prescription.description = updatedData.description;
+    if (updatedData.date)        prescription.date        = updatedData.date;
+    await prescription.save();
+
+    /* ------------------------------------------------------------------ */
+    /* 2. Mise à jour des médicaments                                     */
+    /* ------------------------------------------------------------------ */
+    if (Array.isArray(updatedData.medicaments)) {
+      // ids des anciens médicaments
+      const anciensIds = (
+        await Medicament.findAll({
+          where: { PrescriptionId: prescriptionId },
+          attributes: ['id'],
+          raw: true,
+        })
+      ).map(m => m.id);
+
+      // supprimer suivis médicaments -> puis médicaments
+      if (anciensIds.length) {
+        await SuiviMedicament.destroy({ where: { MedicamentId: { [Op.in]: anciensIds } } });
+        await Medicament.destroy({ where: { id: { [Op.in]: anciensIds } } });
       }
 
-      if (updatedData.date) {
-        prescription.date = updatedData.date;
-      }
+      // créer les nouveaux médicaments
+      const newMeds = updatedData.medicaments.map(med => ({
+        ...med,
+        PatientId: prescription.PatientId,
+        PrescriptionId: prescription.id,
+      }));
+      await Medicament.bulkCreate(newMeds);
+    }
 
-      await prescription.save();
-  
-      if (Array.isArray(updatedData.medicaments)) {
-        await Medicament.destroy({ where: { PrescriptionId: prescriptionId } });
-  
-        const newMeds = updatedData.medicaments.map(med => ({
-          ...med,
-          PatientId: prescription.PatientId,
-          PrescriptionId: prescription.id
-        }));
-        await Medicament.bulkCreate(newMeds);
-      }
+    /* ------------------------------------------------------------------ */
+    /* 3. Mise à jour des indicateurs                                     */
+    /* ------------------------------------------------------------------ */
+    if (Array.isArray(updatedData.indicateurs)) {
+  const nomsDemandes  = updatedData.indicateurs;           // ex. ['Glycémie', 'Poids']
+  const existants     = await Indicateur.findAll({
+    where: { PrescriptionId: prescriptionId },
+    attributes: ['id', 'nom'],
+    raw: true,
+  });
 
-      if (Array.isArray(updatedData.indicateurs)) {
-      await Indicateur.destroy({ where: { PrescriptionId: prescriptionId } });
+  const nomsExistants = existants.map(i => i.nom);
 
-      const newIndicateurs = updatedData.indicateurs.map(nom => ({
+  /* indicateurs à ajouter */
+  const aCreer = nomsDemandes.filter(nom => !nomsExistants.includes(nom));
+  if (aCreer.length) {
+    await Indicateur.bulkCreate(
+      aCreer.map(nom => ({
         nom,
         PatientId: prescription.PatientId,
-        PrescriptionId: prescription.id
-      }));
-      await Indicateur.bulkCreate(newIndicateurs);
+        PrescriptionId: prescription.id,
+      }))
+    );
+  }
+
+  /* indicateurs à retirer ?
+     ⇨ on NE SUPPRIME PAS s’ils possèdent des suivis.
+     ⇨ si vraiment tu veux les retirer, vérifie d’abord qu’ils ne sont
+       pas référencés dans SuiviIndicateur                           */
+  const aSupprimer = existants
+    .filter(i => !nomsDemandes.includes(i.nom))
+    .map(i => i.id);
+
+  if (aSupprimer.length) {
+    const indicUtilises = await SuiviIndicateur.count({
+      where: { IndicateurId: { [Op.in]: aSupprimer } }
+    });
+
+    if (indicUtilises === 0) {
+      await Indicateur.destroy({ where: { id: { [Op.in]: aSupprimer } } });
     }
-  
-      return { success: true, message: 'Perscription updated successfully', data: prescription };
-  
-    } catch (err) {
-      console.error('Error updating perscription:', err);
-      return { success: false, message: 'Server error' };
-    }
+    /* sinon on laisse => les suivis restent attachés */
+  }
+}
+
+    /* ------------------------------------------------------------------ */
+    /* 4. Récupération des derniers suivis pour chaque indicateur         */
+    /* ------------------------------------------------------------------ */
+    const derniersSuivis = await SuiviIndicateur.findAll({
+      attributes: [
+        'IndicateurId',
+        [Sequelize.col('Indicateur.nom'), 'nom'],
+        // MAX(date) est indirect : on filtre par createdAt desc et on prend la première entrée
+        'valeur',
+      ],
+      include: [
+        {
+          model: Indicateur,
+          attributes: [],
+          where: { PrescriptionId: prescriptionId },
+        },
+        {
+          model: JournalSante,
+          attributes: [],
+          where: { PrescriptionId: prescriptionId },
+        },
+      ],
+      where: { valeur: { [Op.ne]: null } },
+      order: [['updatedAt', 'DESC']],
+      group: ['IndicateurId'],
+      raw: true,
+    });
+
+    return {
+      success: true,
+      message: 'Prescription updated successfully',
+      data: {
+        prescription,
+        indicateursMesures: derniersSuivis, 
+      },
+    };
+  } catch (err) {
+    console.error('Error updating prescription:', err);
+    return { success: false, message: 'Server error' };
+  }
 }
 
 async function getPrescriptionDetails(prescriptionId) {
