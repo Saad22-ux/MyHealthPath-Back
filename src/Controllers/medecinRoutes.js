@@ -56,27 +56,6 @@ router.put('/profileMedecin/update', upload.single('photo'), async (req,res)=>{
   }
 });
 
-router.post('/alertes/generer', async (_req, res) => {
-  const result = await genererAlertesPourMedecins();
-  return result.success
-    ? res.status(200).json({ message: result.message })
-    : res.status(500).json({ message: result.message });
-});
-
-router.get('/medecins/:medecinId/alertes', async (req, res) => {
-  const { medecinId } = req.params;
-  try {
-    const alertes = await Notification.findAll({
-      where: { MedecinId: medecinId, type: 'alerte' },
-      order: [['createdAt', 'DESC']],
-    });
-    return res.json(alertes);
-  } catch (error) {
-    console.error('Erreur récupération alertes :', error);
-    return res.status(500).json({ message: 'Erreur serveur' });
-  }
-});
-
 router.get('/statistiques/indicateurs/moyennes', async (req, res) => {
   const result = await getMoyennesIndicateurs();
   res.status(result.success ? 200 : 500).json(result);
