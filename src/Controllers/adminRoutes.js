@@ -14,7 +14,7 @@ router.post('/create-admin', async (req, res) => {
       console.error('Failed to create admin:', error);
       res.status(500).json({ message: 'Failed to create admin' });
     }
-  });
+});
 
 router.get('/pending-medecins', async (req, res) => {
     const result = await getPendingMedecins();

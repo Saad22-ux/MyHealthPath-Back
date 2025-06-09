@@ -3,6 +3,7 @@ const { JournalSante, Prescription, SuiviMedicament, SuiviIndicateur, Indicateur
 const { verifierEtNotifierEtatDanger } = require('./notificationService');
 
 async function updatePatientStateForDoctor(patientId, medecinId, etatGlobal) {
+   if (!medecinId) return;
   try {
     await Patient_Medecin_Link.update(
       { state: etatGlobal },

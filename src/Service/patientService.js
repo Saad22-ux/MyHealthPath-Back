@@ -8,7 +8,6 @@ const fs = require('fs');
 const { Op } = require('sequelize');
 const path = require('path');
 const { sequelize } = require('../models');
-
 const db = require('../models');
 
 async function createPatient(patientDTO, medecinId) {
@@ -349,14 +348,12 @@ async function updatePatientProfileParMedecin(patientId, updatedFields) {
 
 async function updatePatientProfile(patientId, updatedFields, photoFile) {
   try {
-    /* ─ 1. Chargement des instances ─────────────────────────────────────── */
     const patient = await Patient.findByPk(patientId);
     if (!patient) return { success: false, message: 'Patient not found' };
 
     const user = await User.findByPk(patient.UserId);
     if (!user)   return { success: false, message: 'User not found' };
 
-    /* ─ 2. Gestion de la photo ──────────────────────────────────────────── */
     if (photoFile) {
       const uploadDir = path.join(__dirname, '..', 'uploads', 'photos');
       if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -365,7 +362,6 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
       updatedFields.photo = `uploads/photos/${fileName}`;
     }
 
-    /* ─ 3. Mapping des champs vers les instances ───────────────────────── */
     if ('genre'          in updatedFields) patient.genre          = updatedFields.genre;
     if ('date_naissance' in updatedFields) patient.date_naissance = updatedFields.date_naissance;
     if ('taille'         in updatedFields) patient.taille         = updatedFields.taille;
@@ -378,7 +374,6 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
     if ('adress'    in updatedFields) user.adress    = updatedFields.adress;
     if ('photo'     in updatedFields) user.photo     = updatedFields.photo;
 
-    /* ─ 4. Mot de passe : hash manuel + désactivation du hook pour ce save ─ */
    if (
   'password' in updatedFields &&
   typeof updatedFields.password === 'string' &&
@@ -390,8 +385,7 @@ async function updatePatientProfile(patientId, updatedFields, photoFile) {
   await user.save();
 }
 
-    /* ─ 5. Sauvegarde du patient ───────────────────────────────────────── */
-    await patient.save();                  // nothing spécial ici
+    await patient.save();                 
 
     return {
       success: true,

@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {
     tableName: 'User',
-    timestamps: false,
+    timestamps: true,
   });
 
   User.beforeCreate(async (user) => {
