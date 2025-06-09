@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Medecin } = require('../models');
 const upload = require('../middlewares/uploadPhoto');
-const { getMedecinProfile, updateMedecinProfile, } = require('../Service/medecinService');
+const { getMedecinProfile, updateMedecinProfile, getMoyennesIndicateurs  } = require('../Service/medecinService');
 const { genererAlertesPourMedecins } = require('../Service/notificationService');
 
 router.get('/profileMedecin', async (req, res) => {
@@ -63,6 +63,11 @@ router.get('/notifications/alerte', async (req, res) => {
   } else {
     res.status(500).json({ message: result.message });
   }
+});
+
+router.get('/statistiques/indicateurs/moyennes', async (req, res) => {
+  const result = await getMoyennesIndicateurs();
+  res.status(result.success ? 200 : 500).json(result);
 });
 
 module.exports = router;

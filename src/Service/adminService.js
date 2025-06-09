@@ -1,5 +1,6 @@
 const { User } = require('../models');
 const { Op } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 
 async function createAdminUser(userData) {
@@ -62,8 +63,70 @@ async function desactiverCompteUtilisateur(userId) {
   }
 }
 
+async function getGlobalUserCounts() {
+  try {
+    const [totalUsers, totalPatients, totalMedecins] = await Promise.all([
+      User.count(),
+      User.count({ where: { role: 'patient' } }),
+      User.count({ where: { role: 'medecin' } }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        totalUsers,
+        totalPatients,
+        totalMedecins,
+      }
+    };
+  } catch (err) {
+    console.error('Erreur getGlobalUserCounts:', err);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
+async function getUserRegistrationPerMonth() {
+  try {
+    const results = await User.findAll({
+      attributes: [
+        [Sequelize.fn('DATE_FORMAT', Sequelize.col('createdAt'), '%Y-%m'), 'month'],
+        'role',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+      ],
+      where: {
+        role: ['patient', 'medecin']
+      },
+      group: ['month', 'role'],
+      raw: true,
+    });
+
+    const monthlyData = {};
+
+    results.forEach(({ month, role, count }) => {
+      if (!monthlyData[month]) {
+        monthlyData[month] = { month, patients: 0, medecins: 0 };
+      }
+      if (role === 'patient') {
+        monthlyData[month].patients = parseInt(count);
+      } else if (role === 'medecin') {
+        monthlyData[month].medecins = parseInt(count);
+      }
+    });
+
+    return {
+      success: true,
+      data: Object.values(monthlyData).sort((a, b) => a.month.localeCompare(b.month)),
+    };
+  } catch (err) {
+    console.error('Erreur getUserRegistrationPerMonth:', err);
+    return { success: false, message: "Erreur serveur" };
+  }
+}
+
 module.exports = {
   createAdminUser,
   getAllUsers,
-  desactiverCompteUtilisateur
+  desactiverCompteUtilisateur,
+  getGlobalUserCounts,
+  getUserRegistrationPerMonth
 };

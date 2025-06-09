@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getPendingMedecins, approveMedecin } = require('../Service/approvingMedecinsService');
 const { User, Medecin } = require('../models');
-const { createAdminUser, desactiverCompteUtilisateur, getAllUsers }  = require('../Service/adminService');
+const { createAdminUser, desactiverCompteUtilisateur, getAllUsers, getGlobalUserCounts, getUserRegistrationPerMonth }  = require('../Service/adminService');
 
 router.post('/create-admin', async (req, res) => {
     const adminDTO = req.body;
@@ -60,6 +60,16 @@ router.put('/admin/users/:id/desactiver', async (req, res) => {
   } else {
     res.status(400).json({ message: result.message });
   }
+});
+
+router.get('/admin/stats/global', async (req, res) => {
+  const result = await getGlobalUserCounts();
+  res.status(result.success ? 200 : 500).json(result);
+});
+
+router.get('/admin/stats/monthly', async (req, res) => {
+  const result = await getUserRegistrationPerMonth();
+  res.status(result.success ? 200 : 500).json(result);
 });
 
 module.exports = router;

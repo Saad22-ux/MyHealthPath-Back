@@ -1,4 +1,5 @@
-const { Medecin, User} = require('../models');
+const { SuiviIndicateur, Indicateur, Medecin, User} = require('../models');
+const { sequelize } = require('../models');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 
@@ -138,4 +139,26 @@ async function updateMedecinProfile(medecinId, updatedData, photoFile){
   }
 }
 
-module.exports = { createMedecin, getMedecinProfile, updateMedecinProfile };
+async function getMoyennesIndicateurs() {
+  try {
+    const result = await sequelize.query(`
+      SELECT i.nom AS nom, 
+             AVG(CAST(si.valeur AS DECIMAL)) AS moyenne
+      FROM SuiviIndicateur si
+      JOIN Indicateur i ON si.IndicateurId = i.id
+      WHERE si.mesure = true AND si.valeur IS NOT NULL
+      GROUP BY i.nom
+      ORDER BY i.nom;
+    `, {
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Erreur lors du calcul des moyennes:', error);
+    return { success: false, message: 'Erreur serveur' };
+  }
+}
+
+
+module.exports = { createMedecin, getMedecinProfile, updateMedecinProfile, getMoyennesIndicateurs };

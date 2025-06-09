@@ -7,6 +7,7 @@ const { userInfo } = require('os');
 const fs = require('fs');
 const { Op } = require('sequelize');
 const path = require('path');
+const { sequelize } = require('../models');
 
 async function createPatient(patientDTO, medecinId) {
   try {
@@ -572,7 +573,30 @@ async function getJournauxByPrescription(prescriptionId) {
   }
 }
 
+async function getMoyennesIndicateursParPatient(patientId) {
+  try {
+    const result = await sequelize.query(`
+      SELECT i.nom AS nom,
+             AVG(CAST(si.valeur AS DECIMAL)) AS moyenne
+      FROM SuiviIndicateur si
+      JOIN Indicateur i ON si.IndicateurId = i.id
+      JOIN JournalSante js ON si.JournalSanteId = js.id
+      WHERE si.mesure = true 
+        AND si.valeur IS NOT NULL
+        AND js.PatientId = :patientId
+      GROUP BY i.nom
+      ORDER BY i.nom;
+    `, {
+      replacements: { patientId },
+      type: sequelize.QueryTypes.SELECT
+    });
 
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Erreur moyennes patient:', error);
+    return { success: false, message: 'Erreur serveur' };
+  }
+}
 
 
 
@@ -587,5 +611,6 @@ module.exports = { createPatient,
                   getPatientProfile,
                   findPatientByCIN,
                   linkMedecinToPatient,
-                  getJournauxByPrescription
+                  getJournauxByPrescription,
+                  getMoyennesIndicateursParPatient
                 };

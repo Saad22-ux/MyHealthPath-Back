@@ -11,7 +11,8 @@ const { createPatient,
         findPatientByCIN,
         linkMedecinToPatient,
         updatePatientProfileParMedecin,
-        getJournauxByPrescription
+        getJournauxByPrescription,
+        getMoyennesIndicateursParPatient
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
 const multer  = require('multer');
@@ -252,6 +253,14 @@ router.get('/prescriptions/:id/journaux', async (req, res) => {
   const { id } = req.params;
   const result = await getJournauxByPrescription(id);
   res.status(result.success ? 200 : 404).json(result);
+});
+
+router.get('/statistiques/patient/:id/indicateurs/moyennes', async (req, res) => {
+  const patientId = parseInt(req.params.id);
+  if (isNaN(patientId)) return res.status(400).json({ success: false, message: 'ID invalide' });
+
+  const result = await getMoyennesIndicateursParPatient(patientId);
+  res.status(result.success ? 200 : 500).json(result);
 });
 
 module.exports = router;
