@@ -7,6 +7,7 @@ const { userInfo } = require('os');
 const fs = require('fs');
 const { Op } = require('sequelize');
 const path = require('path');
+const db = require('../models'); // ou chemin adapté vers le dossier où tu exportes tes modèles Sequelize
 
 async function createPatient(patientDTO, medecinId) {
   try {
@@ -538,20 +539,34 @@ async function getJournauxByPrescription(prescriptionId) {
       return { success: false, message: 'Prescription not found' };
     }
 
-    const journaux = await JournalSante.findAll({
-      where: { PrescriptionId: prescriptionId },
-      order: [['date', 'DESC']],                
+    /*const dateDebut = new Date();
+    dateDebut.setHours(0, 0, 0, 0);
+    const dateFin = new Date(dateDebut);
+    dateFin.setDate(dateDebut.getDate() + 1);*/
+
+    const journaux = await db.JournalSante.findAll({
+      where: {
+        PrescriptionId: prescriptionId
+      },
       include: [
-        {                                         
-          model: SuiviMedicament,
-          include: { model: Medicament, attributes: ['name', 'dose', 'frequency'] },
+        {
+          model: db.SuiviMedicament,
+          include: [db.Medicament]
         },
-        {                                         
-          model: SuiviIndicateur,
-          include: { model: Indicateur, attributes: ['name', 'valeur'] },
-        },
+        {
+          model: db.SuiviIndicateur,
+          attributes: ['id', 'mesure', 'valeur', 'createdAt', 'updatedAt', 'IndicateurId', 'JournalSanteId'],  // attributs valides ici
+          include: [
+            {
+              model: db.Indicateur,
+              attributes: ['id', 'nom'] // pas 'valeur' ici !
+            }
+          ]
+        }
       ],
+      order: [['date', 'DESC']]
     });
+
 
     return {
       success: true,
