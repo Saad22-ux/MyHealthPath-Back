@@ -121,9 +121,8 @@ async function genererRappelsAutomatiques() {
 }
 
 
-
 module.exports = { envoyerNotification, 
-                   genererRappelsAutomatiques,
+                   genererRappelsAutomatiques, 
                   checkIfPatientSubmittedIndicatorsToday,
                 checkIfMissingIndicatorValues,
               checkIfMedicamentsNotTaken };

@@ -3,7 +3,6 @@ const router = express.Router();
 const { Medecin } = require('../models');
 const upload = require('../middlewares/uploadPhoto');
 const { getMedecinProfile, updateMedecinProfile, getMoyennesIndicateurs  } = require('../Service/medecinService');
-const { genererAlertesPourMedecins } = require('../Service/notificationService');
 
 router.get('/profileMedecin', async (req, res) => {
     if (!req.session || !req.session.user) {

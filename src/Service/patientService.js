@@ -198,7 +198,46 @@ async function activerPatient(patientId, medecinId) {
   }
 }
 
-async function getPatientDetails(patientId) {
+async function getPatientDetails(patientId, idMedecin) {
+  try {
+    const patient = await Patient.findOne({
+      where: { id: patientId },
+      include: [
+        {
+          model: User
+        },
+        {
+          model: Prescription,
+          where: { medecinId: idMedecin },
+          include: [
+            {
+              model: Medecin,
+              include: [User] 
+            }
+          ]
+        },
+        {
+          model: Medecin
+        },
+        {
+          model: Medicament, 
+        },
+        {
+          model: Indicateur, 
+        }
+      ]
+    });
+
+    if (!patient) return { success: false, message: "Patient not found" };
+
+    return { success: true, data: patient };
+  } catch (err) {
+    console.error("Error fetching patient details:", err);
+    return { success: false, message: "Server error" };
+  }
+}
+
+async function getPatientPrescriptions(patientId) {
   try {
     const patient = await Patient.findOne({
       where: { id: patientId },
@@ -622,5 +661,6 @@ module.exports = { createPatient,
                   findPatientByCIN,
                   linkMedecinToPatient,
                   getJournauxByPrescription,
-                  getMoyennesIndicateursParPatient
+                  getMoyennesIndicateursParPatient,
+                  getPatientPrescriptions
                 };

@@ -12,7 +12,8 @@ const { createPatient,
         linkMedecinToPatient,
         updatePatientProfileParMedecin,
         getJournauxByPrescription,
-        getMoyennesIndicateursParPatient
+        getMoyennesIndicateursParPatient,
+        getPatientPrescriptions
          } = require('../Service/patientService');
 const { Medecin, Patient, Prescription, Notification } = require('../models');
 const multer  = require('multer');
@@ -108,7 +109,33 @@ router.post('/get-patients/:id/activate',async (req,res)=>{
 router.get('/get-patients/:id', async (req, res) => {
   const patientId = req.params.id;
 
-  const result = await getPatientDetails(patientId);
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ message: "Utilisateur non authentifié" });
+  }
+
+  const userId = req.session.user.id;
+
+  const medecin = await Medecin.findOne({ where: { UserId: userId } });
+
+  if (!medecin) {
+    return res.status(404).json({ message: "Médecin non trouvé pour cet utilisateur." });
+  }
+
+  const medecinId = medecin.id; 
+
+  const result = await getPatientDetails(patientId, medecinId);
+
+  if (result.success) {
+    res.status(200).json({message: result.message, data: result.data });
+  } else {
+    res.status(404).json({ message: result.message });
+  }
+});
+
+router.get('/patients/:id', async (req, res) => {
+  const patientId = req.params.id;
+
+  const result = await getPatientPrescriptions(patientId);
 
   if (result.success) {
     res.status(200).json({message: result.message, data: result.data });

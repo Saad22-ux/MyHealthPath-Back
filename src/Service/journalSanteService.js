@@ -125,8 +125,6 @@ async function createJournalSante(patientId, data) {
       }
     }
 
-    await verifierEtNotifierEtatDanger(patientId);
-
     return {
       success: true,
       message: pris
@@ -280,8 +278,6 @@ async function upsertJournalSante(patientId, data) {
           await updatePatientStateForDoctor(patientId, medecinId, etatGlobal);
         }
       }
-
-      await verifierEtNotifierEtatDanger(patientId);
 
       return { success: true, message: 'Health journal updated.', journal };
     } else {
