@@ -61,7 +61,7 @@ app.use(journalSanteRoutes);
 app.use(medecinRoutes);
 app.use('/uploads/photos', express.static('uploads/photos'));
 
-cron.schedule('0 20 * * *', async () => {
+cron.schedule('* * * * *', async () => {
   console.log('[CRON] Génération automatique des rappels en cours...');
   try {
     await genererRappelsAutomatiques();

@@ -208,11 +208,12 @@ async function getPatientDetails(patientId, idMedecin) {
         },
         {
           model: Prescription,
+          required: false, // <-- ne pas bloquer la requête si aucune prescription
           where: { medecinId: idMedecin },
           include: [
             {
               model: Medecin,
-              include: [User] 
+              include: [User]
             }
           ]
         },
@@ -220,15 +221,15 @@ async function getPatientDetails(patientId, idMedecin) {
           model: Medecin
         },
         {
-          model: Medicament, 
+          model: Medicament
         },
         {
-          model: Indicateur, 
+          model: Indicateur
         }
       ]
     });
 
-    if (!patient) return { success: false, message: "Patient not found" };
+    if (!patient) return { success: false, message: "Patient not found or not linked to this médecin" };
 
     return { success: true, data: patient };
   } catch (err) {
@@ -236,6 +237,7 @@ async function getPatientDetails(patientId, idMedecin) {
     return { success: false, message: "Server error" };
   }
 }
+
 
 async function getPatientPrescriptions(patientId) {
   try {
